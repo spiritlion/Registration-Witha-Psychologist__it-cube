@@ -1,4 +1,4 @@
-package com.example.registrationwithapsychologist__itcube.CustomComposable
+package com.example.registrationwithapsychologist__itcube.CustomComposable.Accounts
 
 import android.telephony.PhoneNumberUtils
 
