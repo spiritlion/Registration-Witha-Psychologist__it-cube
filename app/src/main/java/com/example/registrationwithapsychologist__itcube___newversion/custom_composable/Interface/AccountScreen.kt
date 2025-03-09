@@ -102,16 +102,18 @@ fun AccountScreen(modifier: Modifier = Modifier) {
                     ) {
                         Text("Дети:")
                         for (el in currentPerson.childrens) {
-                            Row {
-                                Image(painter = painterResource(R.drawable.baby_girl_face), null)
-                                Column(
-                                    modifier
-                                        .border(1.dp, Color.LightGray)
-                                        .clickable {
-                                            isShowBaby = true
-                                            showBaby = el
-                                        }
-                                ) {
+                            Row(modifier = modifier
+                                .border(1.dp, Color.LightGray)
+                                .clickable {
+                                    isShowBaby = true
+                                    showBaby = el
+                                }
+                            ) {
+                                when (el.gender) {
+                                    PersonData.Gender.Man -> Image(painter = painterResource(R.drawable.baby_boy_face), null)
+                                    PersonData.Gender.Woman -> Image(painter = painterResource(R.drawable.baby_girl_face), null)
+                                }
+                                Column{
                                     Text(el.surname)
                                     Text(el.name)
                                     Text(el.patronymiс)

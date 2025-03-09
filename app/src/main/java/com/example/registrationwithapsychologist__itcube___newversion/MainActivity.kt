@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
@@ -45,6 +46,7 @@ import com.example.registrationwithapsychologist__itcube.custom_composable.Inter
 import com.example.registrationwithapsychologist__itcube.custom_composable.Interface.RegistrationScreen
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.MainMenuScreen
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.SettingsScreen
+import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.TestingScreen
 import com.example.registrationwithapsychologist__itcube___newversion.ui.theme.RegistrationWithAPsychologistITCubeNewVersionTheme
 import kotlinx.coroutines.launch
 
@@ -73,7 +75,7 @@ fun Main(modifier: Modifier = Modifier) {
 }
 @Composable
 fun NavBar(navController: NavHostController){
-    val items = listOf("Запись к психологу. IT-куб", "Расписание", "Аккаунт", "Настройки")
+    val items = listOf("Запись к психологу. IT-куб", "Расписание", "Аккаунт", "Настройки", "TEST_SCREEN")
     val selectedItem = remember { mutableStateOf(items[0]) }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -90,6 +92,7 @@ fun NavBar(navController: NavHostController){
                                 "Расписание" -> { navController.navigate(NavRoutes.Schedule.route) }
                                 "Аккаунт" -> { navController.navigate(NavRoutes.Account.route) }
                                 "Настройки" -> { navController.navigate(NavRoutes.Setting.route) }
+                                "TEST_SCREEN" -> { navController.navigate(NavRoutes.Test.route) }
                             }
                             selectedItem.value = item
                         },
@@ -99,8 +102,8 @@ fun NavBar(navController: NavHostController){
                                 "Расписание" -> Icon(Icons.Filled.DateRange, null)
                                 "Аккаунт" -> Icon(Icons.Filled.AccountCircle, null)
                                 "Настройки" -> Icon(Icons.Filled.Settings, null)
+                                "TEST_SCREEN" -> Icon(Icons.Filled.Build, null)
                             }
-
                             if (item == "Запись к психологу. IT-куб") {
                                 Column {
                                     Text("Запись",
@@ -151,6 +154,7 @@ fun NavBar(navController: NavHostController){
                     composable(NavRoutes.Schedule.route) { MenuScreen() }
                     composable(NavRoutes.Account.route) { AccountScreen() }
                     composable(NavRoutes.Setting.route) { SettingsScreen() }
+                    composable(NavRoutes.Test.route) { TestingScreen() }
                 }
             }
 
@@ -166,4 +170,5 @@ sealed class NavRoutes(val route: String) {
     data object Schedule : NavRoutes("schedule")
     data object Account : NavRoutes("account")
     data object Setting : NavRoutes("setting")
+    data object Test : NavRoutes("test")
 }
