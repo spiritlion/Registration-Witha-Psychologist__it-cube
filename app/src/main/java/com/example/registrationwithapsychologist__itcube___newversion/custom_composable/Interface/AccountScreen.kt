@@ -14,8 +14,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -30,12 +32,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
+import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.R
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountScreen(modifier: Modifier = Modifier) {
+fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostController) {
     var isEditingMode by remember { mutableStateOf(false) }
     Column(modifier = modifier) {
         if (!isEditingMode) {
@@ -177,6 +182,109 @@ fun AccountScreen(modifier: Modifier = Modifier) {
                     }
                 )
             }
+            if (isEditingBaby) {
+                var intermediateSurname by remember { mutableStateOf(showBaby!!.surname) }
+                var intermediateName by remember { mutableStateOf(showBaby!!.name) }
+                var intermediatePatronymiс by remember { mutableStateOf(showBaby!!.patronymiс) }
+                var intermediateGender by remember { mutableStateOf(showBaby!!.gender) }
+                AlertDialog(
+                    onDismissRequest = { isShowBaby = false},
+                    title = { Text(text = "Изменение информации о ребёнке") },
+                    text = {
+                        LazyColumn {
+                            item {
+                                TextField(
+                                    value = intermediateName,
+                                    onValueChange = { stringParameter ->
+                                        intermediateName = stringParameter
+                                    },
+                                    placeholder = { Text("Введите ваше имя") },
+                                    label = { Text(text = "Имя") }
+                                )
+                            }
+                            item {
+                                TextField(
+                                    value = intermediateSurname,
+                                    onValueChange = { stringParameter ->
+                                        intermediateSurname = stringParameter
+                                    },
+                                    placeholder = { Text("Введите вашу фамилию") },
+                                    label = { Text(text = "Фамилия") }
+                                )
+                            }
+                            item {
+                                TextField(
+                                    value = intermediatePatronymiс,
+                                    onValueChange = { stringParameter ->
+                                        intermediatePatronymiс = stringParameter
+                                    },
+                                    placeholder = { Text("Введите ваше отчество") },
+                                    label = { Text(text = "Отчество") }
+                                )
+                            }
+                            item {
+                                val options = listOf(PersonData.Gender.Man, PersonData.Gender.Woman)
+                                var expanded by remember { mutableStateOf(false) }
+                                // We want to react on tap/press on TextField to show menu
+                                ExposedDropdownMenuBox(
+                                    expanded = expanded,
+                                    onExpandedChange = { expanded = !expanded },
+                                ) {
+                                    TextField(
+                                        // The `menuAnchor` modifier must be passed to the text field for correctness.
+                                        modifier = Modifier.menuAnchor(),
+                                        readOnly = true,
+                                        value = when (intermediateGender) {
+                                            PersonData.Gender.Man -> "Мужской"
+                                            PersonData.Gender.Woman -> "Женский"
+                                        },
+                                        onValueChange = {},
+                                        label = { Text("Пол") },
+                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                                        colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                                    )
+                                    ExposedDropdownMenu(
+                                        expanded = expanded,
+                                        onDismissRequest = { expanded = false },
+                                    ) {
+                                        options.forEach { selectionOption ->
+                                            DropdownMenuItem(
+                                                text = { Text(when (selectionOption) {
+                                                    PersonData.Gender.Man -> "Мужской"
+                                                    PersonData.Gender.Woman -> "Женский"
+                                                }) },
+                                                onClick = {
+                                                    intermediateGender = selectionOption
+                                                    expanded = false
+                                                },
+                                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                            Button({ isEditingBaby = false }) {
+                                Text("Отмена", fontSize = 22.sp)
+                            }
+                            Button({
+                                showBaby!!.gender = intermediateGender
+                                showBaby!!.name = intermediateName
+                                showBaby!!.surname = intermediateSurname
+                                showBaby!!.patronymiс = intermediatePatronymiс
+                                isShowBaby = false
+                                isEditingBaby = false
+                                navController.navigate(NavRoutes.Account.route)
+                            }) {
+                                Text("Сохранить", fontSize = 22.sp)
+                            }
+                        }
+                    }
+                )
+            }
         } else {
             var isSave by remember { mutableStateOf(false) }
 
@@ -217,7 +325,7 @@ fun AccountScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier
                             .size(64.dp)
                     )
-                }
+                } // аватар
                 item {
                     TextField(
                         value = intermediateSurname,
@@ -227,7 +335,7 @@ fun AccountScreen(modifier: Modifier = Modifier) {
                         placeholder = { Text("Введите вашу фамилию") },
                         label = { Text(text = "Фамилия") }
                     )
-                }
+                } // смена фамилии
                 item {
                     TextField(
                         value = intermediateName,
@@ -237,7 +345,7 @@ fun AccountScreen(modifier: Modifier = Modifier) {
                         placeholder = { Text("Введите ваше имя") },
                         label = { Text(text = "Имя") }
                     )
-                }
+                } // смена имени
                 item {
                     TextField (
                         value = intermediatePatronymiс,
@@ -248,7 +356,7 @@ fun AccountScreen(modifier: Modifier = Modifier) {
                         placeholder = { Text("Введите вашу отчество (если есть)") },
                         label = { Text(text = "Отчество") }
                     )
-                }
+                } // смена отчества
                 item {
                     var showDatePicker by remember { mutableStateOf(false) }
 
@@ -287,7 +395,7 @@ fun AccountScreen(modifier: Modifier = Modifier) {
                             Text("Изменить")
                         }
                     }
-                }
+                } // смена даты рождения
                 item {
                     TextField (
                         value = intermediateMail,
@@ -299,35 +407,48 @@ fun AccountScreen(modifier: Modifier = Modifier) {
                         label = { Text(text = "Mail") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                         )
-                }
+                } // смена mail
                 item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            "Пол: "
-                        )
-                        Text("Мужской")
-                        Switch(
-                            checked = (intermediateGender == PersonData.Gender.Woman),
-                            onCheckedChange = {
-                                intermediateGender = if (it) {
-                                    PersonData.Gender.Woman
-                                } else {
-                                    PersonData.Gender.Man
-                                }
+                    val options = listOf(PersonData.Gender.Man, PersonData.Gender.Woman)
+                    var expanded by remember { mutableStateOf(false) }
+                    // We want to react on tap/press on TextField to show menu
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded },
+                    ) {
+                        TextField(
+                            // The `menuAnchor` modifier must be passed to the text field for correctness.
+                            modifier = Modifier.menuAnchor(),
+                            readOnly = true,
+                            value = when (intermediateGender) {
+                                PersonData.Gender.Man -> "Мужской"
+                                PersonData.Gender.Woman -> "Женский"
                             },
-                            colors = SwitchDefaults.colors(
-                                checkedTrackColor = Color.Red,
-                                checkedThumbColor = Color.White,
-                                checkedBorderColor = Color.Red,
-                                uncheckedTrackColor = Color.Blue,
-                                uncheckedThumbColor = Color.White,
-                                uncheckedBorderColor = Color.Blue
-
-                            )
+                            onValueChange = {},
+                            label = { Text("Пол") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                            colors = ExposedDropdownMenuDefaults.textFieldColors(),
                         )
-                        Text("Женский")
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                        ) {
+                            options.forEach { selectionOption ->
+                                DropdownMenuItem(
+                                    text = { Text(when (selectionOption) {
+                                        PersonData.Gender.Man -> "Мужской"
+                                        PersonData.Gender.Woman -> "Женский"
+                                    }) },
+                                    onClick = {
+                                        intermediateGender = selectionOption
+                                        expanded = false
+                                    },
+                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                )
+                            }
+                        }
                     }
-                }
+                } // смена "пола"
                 item {
                     TextField (
                         value = intermediateDescription.toString(),
@@ -339,8 +460,7 @@ fun AccountScreen(modifier: Modifier = Modifier) {
                         label = { Text(text = "О себе") },
 
                         )
-                }
-
+                } // изменение информации "о себе"
             }
 
             if (isSave) {

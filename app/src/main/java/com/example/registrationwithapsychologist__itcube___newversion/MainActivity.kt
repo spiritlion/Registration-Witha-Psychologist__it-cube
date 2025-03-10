@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,7 +41,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.accounts
 import com.example.registrationwithapsychologist__itcube.custom_composable.Interface.AccountScreen
 import com.example.registrationwithapsychologist__itcube.custom_composable.Interface.MenuScreen
-import com.example.registrationwithapsychologist__itcube.custom_composable.Interface.RegistrationScreen
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.MainMenuScreen
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.SettingsScreen
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.TestingScreen
@@ -69,7 +66,6 @@ class MainActivity : ComponentActivity() {
 fun Main(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     Column(modifier) {
-
         NavBar(navController = navController)
     }
 }
@@ -152,7 +148,7 @@ fun NavBar(navController: NavHostController){
                 NavHost(navController, startDestination = NavRoutes.Main.route) {
                     composable(NavRoutes.Main.route) { MainMenuScreen(scope, drawerState) }
                     composable(NavRoutes.Schedule.route) { MenuScreen() }
-                    composable(NavRoutes.Account.route) { AccountScreen() }
+                    composable(NavRoutes.Account.route) { AccountScreen(navController) }
                     composable(NavRoutes.Setting.route) { SettingsScreen() }
                     composable(NavRoutes.Test.route) { TestingScreen() }
                 }
