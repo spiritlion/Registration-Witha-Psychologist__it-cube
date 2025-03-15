@@ -13,7 +13,7 @@ data class PersonData(
     var password : String,
     var birthday : LocalDate,
     var gender : Gender,
-    var childrens: List<BabyData> = listOf(),
+    var childrens: MutableList<BabyData> = mutableListOf(),
     var description: String? = null
 ) {
 

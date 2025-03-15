@@ -14,7 +14,7 @@ var accounts = listOf(
         password = "<пароль>",
         birthday = LocalDate.of(1999, Month.MAY, 11),
         gender = PersonData.Gender.Man,
-        childrens = listOf(
+        childrens = mutableListOf(
             PersonData.BabyData(
                 "<фамилия ребёнка 1>",
                 "<имя ребёнка 1>",

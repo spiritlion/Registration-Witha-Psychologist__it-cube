@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -34,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
+import com.example.registrationwithapsychologist__itcube___newversion.Main
 import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.R
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
@@ -133,7 +135,9 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 }
                             }
                         }
-                        Row {
+                        Row(
+                            modifier = Modifier.clickable{ isAddingBaby = true }
+                        ) {
                             Image(
                                 painter = painterResource(R.drawable.add),
                                 contentDescription = null,
@@ -266,20 +270,133 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         }
                     },
                     confirmButton = {
-                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                            Button({ isEditingBaby = false }) {
-                                Text("Отмена", fontSize = 22.sp)
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                                Button({ isEditingBaby = false }) {
+                                    Text("Отмена", fontSize = 22.sp)
+                                }
+                                Button({
+                                    showBaby!!.gender = intermediateGender
+                                    showBaby!!.name = intermediateName
+                                    showBaby!!.surname = intermediateSurname
+                                    showBaby!!.patronymiс = intermediatePatronymiс
+                                    isShowBaby = false
+                                    isEditingBaby = false
+                                    navController.navigate(NavRoutes.Account.route)
+                                }) {
+                                    Text("Сохранить", fontSize = 18.sp)
+                                }
                             }
-                            Button({
-                                showBaby!!.gender = intermediateGender
-                                showBaby!!.name = intermediateName
-                                showBaby!!.surname = intermediateSurname
-                                showBaby!!.patronymiс = intermediatePatronymiс
-                                isShowBaby = false
-                                isEditingBaby = false
+                            Button(
+                                onClick =  {
+                                    isEditingBaby = false
+                                    isShowBaby = false
+                                    currentPerson.childrens.remove(showBaby)
+                                    navController.navigate(NavRoutes.Account.route)
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Red
+                                )
+
+                            ) {
+                                Text("Удалить информацию о ребёнке")
+                            }
+                        }
+
+                    }
+                )
+            }
+            if (isAddingBaby) {
+                var intermediateBaby by remember { mutableStateOf(PersonData.BabyData("", "", "", PersonData.Gender.Man)) }
+                AlertDialog(
+                    onDismissRequest = {isAddingBaby = false},
+                    title = { Text("Добавление информации о ребёнке") },
+                    text = {
+                        LazyColumn {
+                            item {
+                                TextField(
+                                    value = intermediateBaby.name,
+                                    onValueChange = { stringParameter ->
+                                        intermediateBaby.name = stringParameter
+                                    },
+                                    placeholder = { Text("Введите ваше имя") },
+                                    label = { Text(text = "Имя") }
+                                )
+                            }
+                            item {
+                                TextField(
+                                    value = intermediateBaby.surname,
+                                    onValueChange = { stringParameter ->
+                                        intermediateBaby.surname = stringParameter
+                                    },
+                                    placeholder = { Text("Введите вашу фамилию") },
+                                    label = { Text(text = "Фамилия") }
+                                )
+                            }
+                            item {
+                                TextField(
+                                    value = intermediateBaby.patronymiс,
+                                    onValueChange = { stringParameter ->
+                                        intermediateBaby.patronymiс = stringParameter
+                                    },
+                                    placeholder = { Text("Введите ваше отчество") },
+                                    label = { Text(text = "Отчество") }
+                                )
+                            }
+                            item {
+                                val options = listOf(PersonData.Gender.Man, PersonData.Gender.Woman)
+                                var expanded by remember { mutableStateOf(false) }
+                                // We want to react on tap/press on TextField to show menu
+                                ExposedDropdownMenuBox(
+                                    expanded = expanded,
+                                    onExpandedChange = { expanded = !expanded },
+                                ) {
+                                    TextField(
+                                        // The `menuAnchor` modifier must be passed to the text field for correctness.
+                                        modifier = Modifier.menuAnchor(),
+                                        readOnly = true,
+                                        value = when (intermediateBaby.gender) {
+                                            PersonData.Gender.Man -> "Мужской"
+                                            PersonData.Gender.Woman -> "Женский"
+                                        },
+                                        onValueChange = {},
+                                        label = { Text("Пол") },
+                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                                        colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                                    )
+                                    ExposedDropdownMenu(
+                                        expanded = expanded,
+                                        onDismissRequest = { expanded = false },
+                                    ) {
+                                        options.forEach { selectionOption ->
+                                            DropdownMenuItem(
+                                                text = { Text(when (selectionOption) {
+                                                    PersonData.Gender.Man -> "Мужской"
+                                                    PersonData.Gender.Woman -> "Женский"
+                                                }) },
+                                                onClick = {
+                                                    intermediateBaby.gender = selectionOption
+                                                    expanded = false
+                                                },
+                                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        Row {
+                            Button({ isAddingBaby = false }) {
+                                Text("Отмена")
+                            }
+                            Button( {
+                                currentPerson.childrens.add(intermediateBaby)
+                                isAddingBaby = false
                                 navController.navigate(NavRoutes.Account.route)
-                            }) {
-                                Text("Сохранить", fontSize = 22.sp)
+                            } ) {
+                                Text("Сохранить")
                             }
                         }
                     }

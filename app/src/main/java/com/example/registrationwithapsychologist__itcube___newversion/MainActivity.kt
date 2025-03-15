@@ -148,7 +148,7 @@ fun NavBar(navController: NavHostController){
                 NavHost(navController, startDestination = NavRoutes.Main.route) {
                     composable(NavRoutes.Main.route) { MainMenuScreen(scope, drawerState) }
                     composable(NavRoutes.Schedule.route) { MenuScreen() }
-                    composable(NavRoutes.Account.route) { AccountScreen(navController) }
+                    composable(NavRoutes.Account.route) { AccountScreen(navController = navController) }
                     composable(NavRoutes.Setting.route) { SettingsScreen() }
                     composable(NavRoutes.Test.route) { TestingScreen() }
                 }
