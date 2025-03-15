@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,10 +36,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
-import com.example.registrationwithapsychologist__itcube___newversion.Main
+import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.accounts
 import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.R
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
+import com.example.registrationwithapsychologist__itcube___newversion.loggedInPerson
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +52,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
             var isShowBaby by remember { mutableStateOf(false) }
             var showBaby : PersonData.BabyData? by remember { mutableStateOf(null) }
             var isEditingBaby by remember { mutableStateOf(false) }
+            var isСhangeAccount by remember { mutableStateOf(false) }
             Box(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     "Профиль",
@@ -108,7 +111,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         modifier = Modifier.fillMaxSize()
                     ) {
                         Text("Дети:")
-                        for (el in currentPerson.childrens) {
+                        for (el in currentPerson.children) {
                             Row(modifier = modifier
                                 .border(1.dp, Color.LightGray)
                                 .clickable {
@@ -146,7 +149,14 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             Text("Добавить нового ребёнка")
                         }
                     }
-
+                }
+                item {
+                    Button(
+                        onClick = { isСhangeAccount = true },
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    ) {
+                        Text("Сменить аккаунт")
+                    }
                 }
             }
             if (isShowBaby) {
@@ -291,7 +301,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 onClick =  {
                                     isEditingBaby = false
                                     isShowBaby = false
-                                    currentPerson.childrens.remove(showBaby)
+                                    currentPerson.children.remove(showBaby)
                                     navController.navigate(NavRoutes.Account.route)
                                 },
                                 colors = ButtonDefaults.buttonColors(
@@ -392,12 +402,63 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 Text("Отмена")
                             }
                             Button( {
-                                currentPerson.childrens.add(intermediateBaby)
+                                currentPerson.children.add(intermediateBaby)
                                 isAddingBaby = false
                                 navController.navigate(NavRoutes.Account.route)
                             } ) {
                                 Text("Сохранить")
                             }
+                        }
+                    }
+                )
+            }
+            if (isСhangeAccount) {
+                AlertDialog(
+                    onDismissRequest = { isСhangeAccount = false },
+                    title = { Text("Смена аккаунта") },
+                    text = {
+                        LazyColumn {
+                            loggedInPerson.forEach { person ->
+                                item {
+                                    Row(modifier = Modifier
+                                        .border(1.dp, Color.Gray)
+                                        .clickable{
+                                            currentPerson = accounts[person.key]
+                                            navController.navigate(NavRoutes.Account.route)
+                                        }
+                                        .fillMaxWidth()
+                                    ) {
+                                        Image(
+                                            painter = painterResource(R.drawable.account_image),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(70.dp)
+                                        )
+                                        Column {
+                                            Text(accounts[person.key].surname)
+                                            Text(accounts[person.key].name)
+                                            Text(accounts[person.key].patronymiс)
+                                            Text(accounts[person.key].mail)
+                                        }
+                                    }
+                                }
+                            }
+                            item {
+                                Button( { navController.navigate(NavRoutes.Registration.route) } ) {
+                                    Text("Зарегистрироваться")
+                                }
+                            }
+                            item {
+                                Button( { navController.navigate(NavRoutes.Log.route) } ) {
+                                    Text("Войти")
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            { isСhangeAccount = false }
+                        ) {
+                            Text("Отмена")
                         }
                     }
                 )

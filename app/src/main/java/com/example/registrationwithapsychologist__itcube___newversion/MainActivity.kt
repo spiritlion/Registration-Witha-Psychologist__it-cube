@@ -38,9 +38,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.accounts
 import com.example.registrationwithapsychologist__itcube.custom_composable.Interface.AccountScreen
 import com.example.registrationwithapsychologist__itcube.custom_composable.Interface.MenuScreen
+import com.example.registrationwithapsychologist__itcube.custom_composable.Interface.RegistrationScreen
+import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.LogScreen
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.MainMenuScreen
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.SettingsScreen
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.TestingScreen
@@ -48,6 +51,9 @@ import com.example.registrationwithapsychologist__itcube___newversion.ui.theme.R
 import kotlinx.coroutines.launch
 
 var currentPerson = accounts[0]
+var loggedInPerson = mutableMapOf<Int, String>(
+    0 to currentPerson.password
+)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -150,6 +156,10 @@ fun NavBar(navController: NavHostController){
                     composable(NavRoutes.Schedule.route) { MenuScreen() }
                     composable(NavRoutes.Account.route) { AccountScreen(navController = navController) }
                     composable(NavRoutes.Setting.route) { SettingsScreen() }
+
+                    composable(NavRoutes.Registration.route) { RegistrationScreen(navController = navController) }
+                    composable(NavRoutes.Log.route) { LogScreen() }
+
                     composable(NavRoutes.Test.route) { TestingScreen() }
                 }
             }
@@ -166,5 +176,9 @@ sealed class NavRoutes(val route: String) {
     data object Schedule : NavRoutes("schedule")
     data object Account : NavRoutes("account")
     data object Setting : NavRoutes("setting")
+
+    data object Registration : NavRoutes("registration")
+    data object Log : NavRoutes("log")
+
     data object Test : NavRoutes("test")
 }

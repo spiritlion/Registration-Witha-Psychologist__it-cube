@@ -9,7 +9,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,7 +39,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
@@ -108,8 +106,8 @@ fun PrintRegistration() {
                 var isIRecording by remember { mutableStateOf(false) }
                 val whoFromBabyIsRecording = remember { mutableStateOf(mutableMapOf<PersonData.BabyData, Boolean>()) }
 
-                if (currentPerson.childrens.isNotEmpty()) {
-                    for (el in currentPerson.childrens) {
+                if (currentPerson.children.isNotEmpty()) {
+                    for (el in currentPerson.children) {
                         whoFromBabyIsRecording.value[el] = false
                     }
                 }

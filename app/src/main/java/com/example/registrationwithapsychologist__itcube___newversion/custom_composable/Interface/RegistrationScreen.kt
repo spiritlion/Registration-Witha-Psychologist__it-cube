@@ -1,5 +1,6 @@
 package com.example.registrationwithapsychologist__itcube.custom_composable.Interface
 
+import android.telephony.PhoneNumberUtils
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,8 +10,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -21,14 +24,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
+import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData.Gender
+import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.accounts
+import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
+import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
+import com.example.registrationwithapsychologist__itcube___newversion.loggedInPerson
+import java.time.LocalDate
+import java.time.Month
+import kotlin.String
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegistrationScreen(modifier: Modifier = Modifier) {
+fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostController) {
     var state by remember { mutableIntStateOf(1) }
 
     var mail by remember { mutableStateOf("") }
@@ -86,24 +99,21 @@ fun RegistrationScreen(modifier: Modifier = Modifier) {
                     label = { Text("Фамилия") },
                     value = surname,
                     onValueChange = { surname = it },
-                    placeholder = { Text("Введите вашу фамилию") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                    placeholder = { Text("Введите вашу фамилию") }
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 TextField(
                     label = { Text("Имя") },
                     value = name,
                     onValueChange = { name = it },
-                    placeholder = { Text("Введите ваше имя") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                    placeholder = { Text("Введите ваше имя") }
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 TextField(
                     label = { Text("Отчество") },
                     value = patronymiс,
                     onValueChange = { patronymiс = it },
-                    placeholder = { Text("Введите ваше отчество") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                    placeholder = { Text("Введите ваше отчество") }
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 TextField(
@@ -116,30 +126,45 @@ fun RegistrationScreen(modifier: Modifier = Modifier) {
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "Пол: "
-                    )
-                    Text("Мужской")
-                    Switch(
-                        checked = (gender == PersonData.Gender.Woman),
-                        onCheckedChange = {
-                            gender = if (it) {
-                                PersonData.Gender.Woman
-                            } else {
-                                PersonData.Gender.Man
-                            }
-                        },
-                        colors = SwitchDefaults.colors(
-                            checkedTrackColor = Color.Red,
-                            checkedThumbColor = Color.White,
-                            checkedBorderColor = Color.Red,
-                            uncheckedTrackColor = Color.Blue,
-                            uncheckedThumbColor = Color.White,
-                            uncheckedBorderColor = Color.Blue
-
+                    val options = listOf(PersonData.Gender.Man, PersonData.Gender.Woman)
+                    var expanded by remember { mutableStateOf(false) }
+                    // We want to react on tap/press on TextField to show menu
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded },
+                    ) {
+                        TextField(
+                            // The `menuAnchor` modifier must be passed to the text field for correctness.
+                            modifier = Modifier.menuAnchor(),
+                            readOnly = true,
+                            value = when (gender) {
+                                PersonData.Gender.Man -> "Мужской"
+                                PersonData.Gender.Woman -> "Женский"
+                            },
+                            onValueChange = {},
+                            label = { Text("Пол") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                            colors = ExposedDropdownMenuDefaults.textFieldColors(),
                         )
-                    )
-                    Text("Женский")
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                        ) {
+                            options.forEach { selectionOption ->
+                                DropdownMenuItem(
+                                    text = { Text(when (selectionOption) {
+                                        PersonData.Gender.Man -> "Мужской"
+                                        PersonData.Gender.Woman -> "Женский"
+                                    }) },
+                                    onClick = {
+                                        gender = selectionOption
+                                        expanded = false
+                                    },
+                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                )
+                            }
+                        }
+                    }
                 }
                 Spacer(modifier = Modifier.height(20.dp))
                 Row {
@@ -149,7 +174,23 @@ fun RegistrationScreen(modifier: Modifier = Modifier) {
                     )
                     Text("Согласен(на) на обработку персональных данных")
                 }
-                Button({}) {
+                Button( {
+                    accounts.add(
+                        PersonData(
+                            surname = surname,
+                            name = name,
+                            patronymiс = patronymiс,
+                            mail = mail,
+                            password = password,
+                            birthday = LocalDate.of(birthday[2], birthday[1], birthday[0]),
+                            gender = gender,
+                            telephoneNumber = PhoneNumberUtils()
+                        )
+                    )
+                    loggedInPerson.put(accounts.size - 1, accounts[accounts.size - 1].password)
+                    currentPerson = accounts[accounts.size - 1]
+                    navController.navigate(NavRoutes.Account.route)
+                } ) {
                     Text("Зарегистрироваться")
                 }
             }

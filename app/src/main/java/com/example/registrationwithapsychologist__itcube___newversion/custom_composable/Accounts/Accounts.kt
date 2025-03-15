@@ -4,17 +4,17 @@ import android.telephony.PhoneNumberUtils
 import java.time.LocalDate
 import java.time.Month
 
-var accounts = listOf(
+var accounts = mutableListOf(
     PersonData(
         surname = "<фамилия>",
         name = "<имя>",
         patronymiс = "<отчество>",
-        telephoneNumber =  PhoneNumberUtils(),
+        telephoneNumber = PhoneNumberUtils(),
         mail = "<mail>",
         password = "<пароль>",
         birthday = LocalDate.of(1999, Month.MAY, 11),
         gender = PersonData.Gender.Man,
-        childrens = mutableListOf(
+        children = mutableListOf(
             PersonData.BabyData(
                 "<фамилия ребёнка 1>",
                 "<имя ребёнка 1>",
