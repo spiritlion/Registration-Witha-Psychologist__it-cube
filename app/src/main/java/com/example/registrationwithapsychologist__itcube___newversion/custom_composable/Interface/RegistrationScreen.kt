@@ -45,6 +45,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
     var state by remember { mutableIntStateOf(1) }
 
     var mail by remember { mutableStateOf("") }
+    var telephone by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var currentPassword by remember { mutableStateOf("") }
     var surname by remember { mutableStateOf("") }
@@ -72,6 +73,14 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 TextField(
+                    label = { Text("Номер телефона") },
+                    value = telephone,
+                    onValueChange = { telephone = it },
+                    placeholder = { Text("Введите ваш номер телефона") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                TextField(
                     label = { Text("Пароль") },
                     value = password,
                     onValueChange = { password = it },
@@ -88,7 +97,19 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 Button(
-                    { if (mail != "" && password == currentPassword && password != "" ) state ++ }
+                    {
+                        if (telephone.isNotEmpty()) {
+                            if (telephone[0] == '+') currentPerson.telephoneNumber = telephone
+                            else currentPerson.telephoneNumber = "+$telephone"
+                        }
+                        if (
+                            mail != "" &&
+                            password == currentPassword &&
+                            password != "" &&
+                            telephone.length == 12
+                        ) state ++
+
+                    }
                 ) {
                     Text("Дальше")
                 }
@@ -175,21 +196,28 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                     Text("Согласен(на) на обработку персональных данных")
                 }
                 Button( {
-                    accounts.add(
-                        PersonData(
-                            surname = surname,
-                            name = name,
-                            patronymiс = patronymiс,
-                            mail = mail,
-                            password = password,
-                            birthday = LocalDate.of(birthday[2], birthday[1], birthday[0]),
-                            gender = gender,
-                            telephoneNumber = PhoneNumberUtils()
+                    if (
+                        surname != "" &&
+                        name != "" &&
+                        patronymiс != "" &&
+                        isAgree
+                    ) {
+                        accounts.add(
+                            PersonData(
+                                surname = surname,
+                                name = name,
+                                patronymiс = patronymiс,
+                                mail = mail,
+                                password = password,
+                                birthday = LocalDate.of(birthday[2], birthday[1], birthday[0]),
+                                gender = gender,
+                                telephoneNumber = telephone
+                            )
                         )
-                    )
-                    loggedInPerson.put(accounts.size - 1, accounts[accounts.size - 1].password)
-                    currentPerson = accounts[accounts.size - 1]
-                    navController.navigate(NavRoutes.Account.route)
+                        loggedInPerson[accounts.size - 1] = accounts[accounts.size - 1].password
+                        currentPerson = accounts[accounts.size - 1]
+                        navController.navigate(NavRoutes.Account.route)
+                    }
                 } ) {
                     Text("Зарегистрироваться")
                 }

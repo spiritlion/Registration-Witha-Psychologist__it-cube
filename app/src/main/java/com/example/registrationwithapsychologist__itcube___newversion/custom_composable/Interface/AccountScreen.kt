@@ -23,7 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -91,6 +90,9 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                 }
                 item {
                     Text("Email: ${currentPerson.mail}")
+                }
+                item {
+                    Text("Телефон: ${currentPerson.telephoneNumber.slice(0..1)}(${currentPerson.telephoneNumber.slice(2..4)})${currentPerson.telephoneNumber.slice(5..7)}-${currentPerson.telephoneNumber.slice(8..9)}-${currentPerson.telephoneNumber.slice(10..11)}")
                 }
                 item {
                     Text(
@@ -317,7 +319,10 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                 )
             }
             if (isAddingBaby) {
-                var intermediateBaby by remember { mutableStateOf(PersonData.BabyData("", "", "", PersonData.Gender.Man)) }
+                var intermediateBabyName by remember { mutableStateOf("") }
+                var intermediateBabySurname by remember { mutableStateOf("") }
+                var intermediateBabyPatronymic by remember { mutableStateOf("") }
+                var intermediateBabyGender by remember { mutableStateOf(PersonData.Gender.Man) }
                 AlertDialog(
                     onDismissRequest = {isAddingBaby = false},
                     title = { Text("Добавление информации о ребёнке") },
@@ -325,9 +330,9 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         LazyColumn {
                             item {
                                 TextField(
-                                    value = intermediateBaby.name,
+                                    value = intermediateBabyName,
                                     onValueChange = { stringParameter ->
-                                        intermediateBaby.name = stringParameter
+                                        intermediateBabyName = stringParameter
                                     },
                                     placeholder = { Text("Введите ваше имя") },
                                     label = { Text(text = "Имя") }
@@ -335,9 +340,9 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             }
                             item {
                                 TextField(
-                                    value = intermediateBaby.surname,
+                                    value = intermediateBabySurname,
                                     onValueChange = { stringParameter ->
-                                        intermediateBaby.surname = stringParameter
+                                        intermediateBabySurname = stringParameter
                                     },
                                     placeholder = { Text("Введите вашу фамилию") },
                                     label = { Text(text = "Фамилия") }
@@ -345,9 +350,9 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             }
                             item {
                                 TextField(
-                                    value = intermediateBaby.patronymiс,
+                                    value = intermediateBabyPatronymic,
                                     onValueChange = { stringParameter ->
-                                        intermediateBaby.patronymiс = stringParameter
+                                        intermediateBabyPatronymic = stringParameter
                                     },
                                     placeholder = { Text("Введите ваше отчество") },
                                     label = { Text(text = "Отчество") }
@@ -365,7 +370,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                         // The `menuAnchor` modifier must be passed to the text field for correctness.
                                         modifier = Modifier.menuAnchor(),
                                         readOnly = true,
-                                        value = when (intermediateBaby.gender) {
+                                        value = when (intermediateBabyGender) {
                                             PersonData.Gender.Man -> "Мужской"
                                             PersonData.Gender.Woman -> "Женский"
                                         },
@@ -385,7 +390,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                                     PersonData.Gender.Woman -> "Женский"
                                                 }) },
                                                 onClick = {
-                                                    intermediateBaby.gender = selectionOption
+                                                    intermediateBabyGender = selectionOption
                                                     expanded = false
                                                 },
                                                 contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
@@ -402,7 +407,14 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 Text("Отмена")
                             }
                             Button( {
-                                currentPerson.children.add(intermediateBaby)
+                                currentPerson.children.add(
+                                    PersonData.BabyData(
+                                        surname = intermediateBabySurname,
+                                        name = intermediateBabyName,
+                                        patronymiс = intermediateBabyPatronymic,
+                                        gender = intermediateBabyGender
+                                    )
+                                )
                                 isAddingBaby = false
                                 navController.navigate(NavRoutes.Account.route)
                             } ) {
@@ -438,6 +450,8 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                             Text(accounts[person.key].name)
                                             Text(accounts[person.key].patronymiс)
                                             Text(accounts[person.key].mail)
+                                            Text( "${accounts[person.key].telephoneNumber.slice(0..1)}(${accounts[person.key].telephoneNumber.slice(2..4)})${accounts[person.key].telephoneNumber.slice(5..7)}-${accounts[person.key].telephoneNumber.slice(7..8)}-${currentPerson.telephoneNumber.slice(9..10)}")
+
                                         }
                                     }
                                 }
@@ -471,6 +485,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
             var intermediatePatronymiс by remember { mutableStateOf(currentPerson.patronymiс) }
             var intermediateBirthday by remember { mutableStateOf(currentPerson.birthday) }
             var intermediateMail by remember { mutableStateOf(currentPerson.mail) }
+            var intermediateTelephone by remember { mutableStateOf(currentPerson.telephoneNumber) }
             var intermediateGender by remember { mutableStateOf(currentPerson.gender) }
             var intermediateDescription by remember { mutableStateOf(currentPerson.description) }
             Box(modifier = Modifier.fillMaxWidth()) {
@@ -484,6 +499,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 intermediateName != currentPerson.name ||
                                 intermediatePatronymiс != currentPerson.patronymiс ||
                                 intermediateMail != currentPerson.mail ||
+                                intermediateTelephone != currentPerson.telephoneNumber ||
                                 intermediateBirthday != currentPerson.birthday ||
                                 intermediateGender != currentPerson.gender ||
                                 intermediateDescription != currentPerson.description
@@ -587,6 +603,18 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         )
                 } // смена mail
                 item {
+                    TextField (
+                        value = intermediateTelephone,
+                        onValueChange = {
+                                stringParameter ->
+                            intermediateTelephone = stringParameter
+                        },
+                        placeholder = { Text("Введите ваш телефон") },
+                        label = { Text(text = "Телефон") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                    )
+                } // смена телефона
+                item {
                     val options = listOf(PersonData.Gender.Man, PersonData.Gender.Woman)
                     var expanded by remember { mutableStateOf(false) }
                     // We want to react on tap/press on TextField to show menu
@@ -640,7 +668,6 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         )
                 } // изменение информации "о себе"
             }
-
             if (isSave) {
                 AlertDialog(
                     onDismissRequest = { isSave = false},
@@ -659,6 +686,8 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                     currentPerson.name = intermediateName
                                     currentPerson.patronymiс = intermediatePatronymiс
                                     currentPerson.mail = intermediateMail
+                                    if (intermediateTelephone[0] == '+') currentPerson.telephoneNumber = intermediateTelephone
+                                    else currentPerson.telephoneNumber = "+$intermediateTelephone"
                                     currentPerson.birthday = intermediateBirthday
                                     currentPerson.description = intermediateDescription
                                     currentPerson.gender = intermediateGender

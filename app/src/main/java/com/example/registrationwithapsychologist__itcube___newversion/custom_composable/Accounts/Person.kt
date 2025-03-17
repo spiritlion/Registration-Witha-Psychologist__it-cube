@@ -8,7 +8,7 @@ data class PersonData(
     var surname : String,
     var name : String,
     var patronymiс : String,
-    var telephoneNumber : PhoneNumberUtils,
+    var telephoneNumber : String,
     var mail : String,
     var password : String,
     var birthday : LocalDate,

@@ -38,7 +38,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.accounts
 import com.example.registrationwithapsychologist__itcube.custom_composable.Interface.AccountScreen
 import com.example.registrationwithapsychologist__itcube.custom_composable.Interface.MenuScreen
@@ -163,7 +162,6 @@ fun NavBar(navController: NavHostController){
                     composable(NavRoutes.Test.route) { TestingScreen() }
                 }
             }
-
         }
     )
 }
