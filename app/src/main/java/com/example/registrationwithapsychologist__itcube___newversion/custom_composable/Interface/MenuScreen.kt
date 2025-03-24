@@ -1,6 +1,8 @@
 package com.example.registrationwithapsychologist__itcube.custom_composable.Interface
 
 import android.annotation.SuppressLint
+import android.app.DatePickerDialog
+import android.widget.DatePicker
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -10,10 +12,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -23,7 +27,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -35,10 +41,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
@@ -47,371 +55,140 @@ import com.example.registrationwithapsychologist__itcube___newversion.currentPer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.util.Calendar
+import java.util.Date
 
 var isRegistration = mutableStateOf(false)
+@SuppressLint("MutableCollectionMutableState")
 @Composable
 fun MenuScreen(modifier: Modifier = Modifier) {
-    val date = LocalDate.now()
-    val currentDate by remember { mutableStateOf(date) }
-    var scale by remember { mutableIntStateOf(1) }
-    Column(modifier = modifier) {
-        Row (horizontalArrangement = Arrangement.Center, modifier = Modifier
-            .padding()
-            .fillMaxWidth()) {
-            Text("$currentDate")
-        }
-        Button(onClick = { if (scale < 3) {scale += 1}  },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent,
-                disabledContainerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.primary,
-                disabledContentColor = MaterialTheme.colorScheme.primary
-            ),
-            modifier = Modifier.fillMaxWidth(),
+    var reason by remember { mutableStateOf("") }
+
+    val mContext = LocalContext.current
+
+    // Declaring integer values
+    // for year, month and day
+    val mYear: Int
+    val mMonth: Int
+    val mDay: Int
+
+    // Initializing a Calendar
+    val mCalendar = Calendar.getInstance()
+
+    // Fetching current year, month and day
+    mYear = mCalendar.get(Calendar.YEAR)
+    mMonth = mCalendar.get(Calendar.MONTH)
+    mDay = mCalendar.get(Calendar.DAY_OF_MONTH)
+
+    mCalendar.time = Date()
+
+    // Declaring a string value to
+    // store date in string format
+    val mDate = remember { mutableStateOf("") }
+
+    // Declaring DatePickerDialog and setting
+    // initial values as current values (present year, month and day)
+    val mDatePickerDialog = DatePickerDialog(
+        mContext,
+        { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
+            mDate.value = "$mDayOfMonth/${mMonth + 1}/$mYear"
+        }, mYear, mMonth, mDay
+    )
+
+
+    var isIRecording by remember { mutableStateOf(false) }
+    var whoFromBabyIsRecording by remember { mutableStateOf(mutableMapOf<PersonData.BabyData, Boolean>()) }
+    for (el in currentPerson.children) {
+        whoFromBabyIsRecording[el] = false
+    }
+    Row {
+        Spacer(
+            modifier = Modifier
+                .padding(10.dp)
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start
         ) {
             Text(
-                text = when (scale) {
-                    1 -> "Неделя"
-                    2 -> "Месяц"
-                    3 -> "Год"
-                    else -> "Error"
-                },
-                textDecoration = TextDecoration.Underline
+                text = "Запись",
+                fontSize = 40.sp,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
             )
-
-        }
-        when(scale) {
-            1 -> PrintTableWeek()
-            2 -> PrintTableMonth(currentDate)
-            3 -> PrintTableYear(currentDate)
-            else -> {
-                Text(text = "Error")
-            }
-        }
-        if (isRegistration.value) {
-            PrintRegistration()
-        }
-    }
-}
-
-@SuppressLint("CoroutineCreationDuringComposition", "MutableCollectionMutableState")
-@Composable
-fun PrintRegistration() {
-    var startRegistration by remember { mutableStateOf(false) }
-    AlertDialog(
-        onDismissRequest = {  },
-        title = { Text("Запись на <Выбранная дата>") },
-        text = {
-            if (!startRegistration) {
-                var isIRecording by remember { mutableStateOf(false) }
-                val whoFromBabyIsRecording = remember { mutableStateOf(mutableMapOf<PersonData.BabyData, Boolean>()) }
-
-                if (currentPerson.children.isNotEmpty()) {
-                    for (el in currentPerson.children) {
-                        whoFromBabyIsRecording.value[el] = false
-                    }
-                }
-                LazyColumn {
-                    item {
-                        Row {
-                            Checkbox(
-                                checked = isIRecording,
-                                onCheckedChange = { isIRecording = it }
-                            )
-                            Text("Себя", modifier = Modifier.padding(vertical = 13.dp))
-                        }
-                    }
-                    for ((key, value) in whoFromBabyIsRecording.value) {
-                        item(key.hashCode().toString()) { // Уникальный ключ для каждого элемента
-                            Row {
-                                Checkbox(
-                                    checked = value,
-                                    onCheckedChange = {
-                                        whoFromBabyIsRecording.value[key] = it // Обновляем значение в карте
-                                    }
-                                )
-                                Text(key.name, modifier = Modifier.padding(vertical = 13.dp))
-                            }
-                        }
-                    }
-                }
-
-
-            } else {
-                var progress by remember { mutableFloatStateOf(0.0f) }
-                val scope = rememberCoroutineScope()
-                scope.launch {
-                    while (progress < 1f) {
-                        progress += 0.01f
-                        delay(1000L)
-                    }
-                    if (progress > 1f) progress = 1f
-                }
-                CircularProgressIndicator(progress = progress, color = Color(0f, if (progress > 1f) 1f else progress, 0f))
-                val startOffset = 300   // начальная позиция
-                val endOffset = 60  // конечная позиция
-                val boxWidth = 150      // ширина компонента
-
-                var boxState by remember { mutableIntStateOf(startOffset) }
-                val offset by animateDpAsState(targetValue = boxState.dp)
-
-                if (progress >= 1f) boxState = endOffset
-
-                Column(Modifier.fillMaxWidth()) {
-                    Box(Modifier
-                        .padding(start = offset)
-                        .size(boxWidth.dp)) {
-                        Text("Запись завершена.\nСпасибо, что выбрали нас)",
-                            color = Color.Green,
-                            fontSize = 25.sp,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                    if (progress == 1f) {
-                        Button({ isRegistration.value = false }, modifier = Modifier.align(Alignment.End)) {
-                            Text("Ок")
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            if (!startRegistration) {
-                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                    Button(
-                        onClick = {
-                            isRegistration.value = false
-                        }
-                    ) {
-                        Text("Отмена")
-                    }
-                    Row {
-                        Button(
-                            onClick = {
-                                startRegistration = true
-                            }
-                        ) {
-                            Text("Записаться")
-                        }
-                    }
-                }
-            }
-        }
-    )
-}
-
-@Composable
-fun PrintTableWeek() {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(5),
-        modifier = Modifier.padding(30.dp),
-
-    ) {
-        for (el in listOf(
-            "ПН",
-            "ВТ",
-            "СР",
-            "ЧТ",
-            "ПН")
-        ) {
-            item {
-                Text(text = el,
-                    textAlign = TextAlign.Center)
-            }
-        }
-        for (el in listOf(
-            "8:00",
-            "9:00",
-            "10:00",
-            "11:00",
-            "13:00",
-            "14:00",
-            "15:00",
-            "16:00",
-            "17:00"
-        )
-        ) {
-            for (i in 1..5) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .clickable {
-                                isRegistration.value = true
-                            }
-                            .background(Color.LightGray)
-                            .border(1.dp, Color.Gray)
-                            .padding(10.dp)
-                            .size(41.dp)
-                    ) {
-                        Text(text = el,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-        }
-
-    }
-}
-
-@Composable
-fun PrintTableMonth(currentDate: LocalDate) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(5),
-        modifier = Modifier.padding(30.dp),
-    ) {
-        for (el in listOf(
-            "ПН",
-            "ВТ",
-            "СР",
-            "ЧТ",
-            "ПН"
-        )
-        ) {
-            item {
+            Spacer(
+                modifier = Modifier.padding(20.dp)
+            )
+            Row {
                 Text(
-                    text = el,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-        for (i in 1..when (currentDate.monthValue) {
-            1 -> 31
-            2 -> 28
-            3 -> 31
-            4 -> 30
-            5 -> 31
-            6 -> 30
-            7 -> 31
-            8 -> 31
-            9 -> 30
-            10 -> 31
-            11 -> 30
-            12 -> 31
-            else -> 1
-        }) {
-            item {
-                Box(
+                    text = "Дата: ${mDate.value} ",
                     modifier = Modifier
-                        .clickable { }
-                        .background(Color.LightGray)
-                        .border(1.dp, Color.Gray)
-                        .padding(10.dp)
-                ) {
-                    Text(
-                        text = "$i",
-                        textAlign = TextAlign.Center
-                    )
+                        .align(Alignment.CenterVertically)
+                )
+                Button( { mDatePickerDialog.show() } ) {
+                    Text("Выбрать дату")
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun PrintTableYear(currentDate: LocalDate) {
-    Text(text = "${LocalDate.now().year}",
-        textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth()
-    )
-    LazyColumn (
-        modifier = Modifier.padding(30.dp).fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        for ((i, el) in listOf(
-            "Январь",
-            "Февраль",
-            "Март",
-            "Апрель",
-            "Май",
-            "Июнь",
-            "Июль",
-            "Август",
-            "Сентябрь",
-            "Октябрь",
-            "Ноябрь",
-            "Декабрь"
-        ).withIndex()
-        ) {
-            item {
-                if (i == 5) {
-                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Image(
-                            painter = painterResource(R.drawable.arrow_left),
-                            contentDescription = null
-                        )
-                        Box(
+            Column {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(
+                        text = "Кто идёт: ",
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                    )
+                }
+                Column {
+                    Row {
+                        Text("${currentPerson.surname} ${currentPerson.name} ${currentPerson.patronymiс} (Вы)", modifier = Modifier.weight(1f))
+                        Checkbox(
+                            checked = isIRecording,
+                            onCheckedChange = { isIRecording = it },
                             modifier = Modifier
-                                .clickable {
-                                    currentDate.withMonth(
-                                        when (el) {
-                                            "Январь" -> 1
-                                            "Февраль" -> 2
-                                            "Март" -> 3
-                                            "Апрель" -> 4
-                                            "Май" -> 5
-                                            "Июнь" -> 6
-                                            "Июль" -> 7
-                                            "Август" -> 8
-                                            "Сентябрь" -> 9
-                                            "Октябрь" -> 10
-                                            "Ноябрь" -> 11
-                                            "Декабрь" -> 12
-                                            else -> 1
-                                        }
-                                    )
-                                }
-                                .background(Color.LightGray)
-                                .border(1.dp, Color.Gray)
-                                .padding(10.dp)
-                        ) {
-                            Text(
-                                text = el,
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                        Image(
-                            painter = painterResource(R.drawable.arrow_right),
-                            contentDescription = null
+                                .width(50.dp)
                         )
                     }
-                }
-                Box(
-                    modifier = Modifier
-                        .clickable {
-                            currentDate.withMonth(
-                                when (el) {
-                                    "Январь" -> 1
-                                    "Февраль" -> 2
-                                    "Март" -> 3
-                                    "Апрель" -> 4
-                                    "Май" -> 5
-                                    "Июнь" -> 6
-                                    "Июль" -> 7
-                                    "Август" -> 8
-                                    "Сентябрь" -> 9
-                                    "Октябрь" -> 10
-                                    "Ноябрь" -> 11
-                                    "Декабрь" -> 12
-                                    else -> 1
-                                }
+                    for (el in whoFromBabyIsRecording) {
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            Text("${el.key.surname} ${el.key.name} ${el.key.patronymiс}", modifier = Modifier.weight(1f))
+                            Checkbox(
+                                checked = el.value,
+                                onCheckedChange = {
+                                    val intermate = whoFromBabyIsRecording // пройтись циклом
+                                    intermate[el.key] = it
+                                    whoFromBabyIsRecording = intermate
+                                                  },
+                                modifier = Modifier
+                                    .width(50.dp)
                             )
                         }
-                        .background(Color.LightGray)
-                        .border(1.dp, Color.Gray)
-                        .padding(10.dp)
-                ) {
-                    Text(
-                        text = el,
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                    }
                 }
+            }
+            TextField(
+                value = reason,
+                onValueChange = { reason = it },
+                label = { Text("Причина") },
+                placeholder = { Text("Почему вы решили записаться") }
+            )
+            Spacer(
+                modifier = Modifier.padding(20.dp)
+            )
+            Button(
+                onClick = {  },
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                Text("Записаться")
             }
         }
     }
 }
 
+
+@Composable
+@Preview
+fun MenuScreenPreview() {
+    MenuScreen()
+}

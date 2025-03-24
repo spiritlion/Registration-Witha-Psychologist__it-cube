@@ -1,15 +1,20 @@
 package com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface
 
+import android.app.DatePickerDialog
+import android.widget.DatePicker
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,10 +22,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
+import java.util.Calendar
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,6 +64,67 @@ fun TestingScreen(modifier: Modifier = Modifier) {
                         )
                     )
                     Text("Женский")
+                }
+            }
+            item {
+                val mContext = LocalContext.current
+
+                // Declaring integer values
+                // for year, month and day
+                val mYear: Int
+                val mMonth: Int
+                val mDay: Int
+
+                // Initializing a Calendar
+                val mCalendar = Calendar.getInstance()
+
+                // Fetching current year, month and day
+                mYear = mCalendar.get(Calendar.YEAR)
+                mMonth = mCalendar.get(Calendar.MONTH)
+                mDay = mCalendar.get(Calendar.DAY_OF_MONTH)
+
+                mCalendar.time = Date()
+
+                // Declaring a string value to
+                // store date in string format
+                val mDate = remember { mutableStateOf("") }
+
+                // Declaring DatePickerDialog and setting
+                // initial values as current values (present year, month and day)
+                val mDatePickerDialog = DatePickerDialog(
+                    mContext,
+                    { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
+                        mDate.value = "$mDayOfMonth/${mMonth + 1}/$mYear"
+                    }, mYear, mMonth, mDay
+                )
+
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    // Creating a button that on
+                    // click displays/shows the DatePickerDialog
+                    Button(
+                        onClick = {
+                            mDatePickerDialog.show()
+                        }, colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0XFF0F9D58)
+                        )
+                    ) {
+                        Text(text = "Open Date Picker", color = Color.White)
+                    }
+
+                    // Adding a space of 100dp height
+                    Spacer(modifier = Modifier.size(100.dp))
+
+                    // Displaying the mDate value in the Text
+                    Text(
+                        text = "Selected Date: ${mDate.value}",
+                        fontSize = 30.sp,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
         }

@@ -50,7 +50,7 @@ import com.example.registrationwithapsychologist__itcube___newversion.ui.theme.R
 import kotlinx.coroutines.launch
 
 var currentPerson = accounts[0]
-var loggedInPerson = mutableMapOf<Int, String>(
+var loggedInPerson = mutableMapOf(
     0 to currentPerson.password
 )
 class MainActivity : ComponentActivity() {
