@@ -157,7 +157,7 @@ fun NavBar(navController: NavHostController){
                     composable(NavRoutes.Setting.route) { SettingsScreen() }
 
                     composable(NavRoutes.Registration.route) { RegistrationScreen(navController = navController) }
-                    composable(NavRoutes.Log.route) { LogScreen() }
+                    composable(NavRoutes.Log.route) { LogScreen(navController = navController) }
 
                     composable(NavRoutes.Test.route) { TestingScreen() }
                 }

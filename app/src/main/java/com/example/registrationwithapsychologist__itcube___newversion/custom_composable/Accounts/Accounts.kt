@@ -1,6 +1,5 @@
 package com.example.registrationwithapsychologist__itcube.custom_composable.Accounts
 
-import android.telephony.PhoneNumberUtils
 import java.time.LocalDate
 import java.time.Month
 
@@ -33,8 +32,18 @@ var accounts = mutableListOf(
                 "<отчество ребёнка 3>",
                 PersonData.Gender.Woman
             )
-
         ),
         description = "Я есть..."
+    ),
+    PersonData(
+        surname = "TODO()",
+        name = "TODO()",
+        patronymiс = "TODO()",
+        telephoneNumber = "+81234567890",
+        mail = "@",
+        password = "rabbit",
+        birthday = LocalDate.of(2025, 3, 23),
+        gender = PersonData.Gender.Man,
+        description = "TODO()"
     )
 )

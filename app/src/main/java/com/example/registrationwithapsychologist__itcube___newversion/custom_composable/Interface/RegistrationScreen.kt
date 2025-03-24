@@ -147,7 +147,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    val options = listOf(PersonData.Gender.Man, PersonData.Gender.Woman)
+                    val options = listOf(Gender.Man, Gender.Woman)
                     var expanded by remember { mutableStateOf(false) }
                     // We want to react on tap/press on TextField to show menu
                     ExposedDropdownMenuBox(
@@ -159,8 +159,8 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                             modifier = Modifier.menuAnchor(),
                             readOnly = true,
                             value = when (gender) {
-                                PersonData.Gender.Man -> "Мужской"
-                                PersonData.Gender.Woman -> "Женский"
+                                Gender.Man -> "Мужской"
+                                Gender.Woman -> "Женский"
                             },
                             onValueChange = {},
                             label = { Text("Пол") },
@@ -174,8 +174,8 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                             options.forEach { selectionOption ->
                                 DropdownMenuItem(
                                     text = { Text(when (selectionOption) {
-                                        PersonData.Gender.Man -> "Мужской"
-                                        PersonData.Gender.Woman -> "Женский"
+                                        Gender.Man -> "Мужской"
+                                        Gender.Woman -> "Женский"
                                     }) },
                                     onClick = {
                                         gender = selectionOption
