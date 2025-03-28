@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -21,6 +24,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -30,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -40,6 +46,7 @@ import com.example.registrationwithapsychologist__itcube.custom_composable.Accou
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.accounts
 import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.R
+import com.example.registrationwithapsychologist__itcube___newversion.avatars
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
 import com.example.registrationwithapsychologist__itcube___newversion.loggedInPerson
 
@@ -61,7 +68,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         .align(Alignment.Center),
                     fontSize = 30.sp
                 )
-                Image(
+                Icon(
                     painter = painterResource(R.drawable.edit),
                     contentDescription = null,
                     modifier = Modifier
@@ -77,13 +84,17 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Image(
-                            painter = painterResource(R.drawable.account_image),
+                            painter = painterResource(currentPerson.image),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(64.dp)
+                                .clip(CircleShape)
                         )
+                        Text(" ")
                         Text(currentPerson.surname)
+                        Text(" ")
                         Text(currentPerson.name)
+                        Text(" ")
                         Text(currentPerson.patronymiс)
                     }
                 }
@@ -124,8 +135,8 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 }
                             ) {
                                 when (el.gender) {
-                                    PersonData.Gender.Man -> Image(painter = painterResource(R.drawable.baby_boy_face), null)
-                                    PersonData.Gender.Woman -> Image(painter = painterResource(R.drawable.baby_girl_face), null)
+                                    PersonData.Gender.Man -> Icon(painter = painterResource(R.drawable.baby_boy_face), null)
+                                    PersonData.Gender.Woman -> Icon(painter = painterResource(R.drawable.baby_girl_face), null)
                                 }
                                 Column{
                                     Text(el.surname)
@@ -145,7 +156,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         Row(
                             modifier = Modifier.clickable{ isAddingBaby = true }
                         ) {
-                            Image(
+                            Icon(
                                 painter = painterResource(R.drawable.add),
                                 contentDescription = null,
                                 modifier = Modifier.size(32.dp)
@@ -443,7 +454,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                         .fillMaxWidth()
                                     ) {
                                         Image(
-                                            painter = painterResource(R.drawable.account_image),
+                                            painter = painterResource(currentPerson.image),
                                             contentDescription = null,
                                             modifier = Modifier.size(70.dp)
                                         )
@@ -515,12 +526,68 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
             }
             LazyColumn {
                 item {
-                    Image(
-                        painter = painterResource(R.drawable.account_image),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(64.dp)
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(currentPerson.image),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(CircleShape)
+                        )
+                        var changeAvatar by remember { mutableStateOf(false) }
+                        Button(
+                            { changeAvatar = true }
+                        ) {
+                            Text("Сменить аватар")
+                        }
+                        if (changeAvatar) {
+                            AlertDialog(
+                                onDismissRequest = { changeAvatar = false },
+                                title = {
+                                    Text("Выберите новый аватар")
+                                },
+                                text = {
+                                    LazyVerticalGrid(
+                                        columns = GridCells.Fixed(3)
+                                    ) {
+                                        for (el in avatars) {
+                                            item {
+                                                Image(
+                                                    painter = painterResource(el),
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .size(64.dp)
+                                                        .clip(CircleShape)
+                                                        .border(
+                                                            5.dp,
+                                                            if (el == currentPerson.image) {
+                                                                MaterialTheme.colorScheme.outline
+                                                            } else {
+                                                                Color.Transparent
+                                                            },
+                                                            CircleShape
+                                                        )
+                                                        .clickable {
+                                                            currentPerson.image = el
+                                                            changeAvatar = false
+                                                        }
+                                                )
+                                            }
+                                        }
+                                    }
+                                },
+                                confirmButton = { },
+                                dismissButton = {
+                                    Button({ changeAvatar = false }) {
+                                        Text("Отмена")
+                                    }
+                                }
+                            )
+                        }
+                    }
                 } // аватар
                 item {
                     TextField(
@@ -693,7 +760,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             Text("Удалить аккаунт")
                         }
                     }
-                }
+                } // выйти из аккаунта / удалить аккаунт
             }
             if (isSave) {
                 AlertDialog(
