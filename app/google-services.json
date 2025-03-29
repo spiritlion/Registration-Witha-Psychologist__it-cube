@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "682093386581",
+    "project_id": "registrationwithpsycholog",
+    "storage_bucket": "registrationwithpsycholog.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:682093386581:android:4cf0eae99e5d5ccabbaddc",
+        "android_client_info": {
+          "package_name": "com.example.registrationwithapsychologist__itcube___newversion"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRBNaHhQclgLYxIqTr2OscrqF6S4Yj69I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:682093386581:android:aa3ab48ab6749e84bbaddc",
+        "android_client_info": {
+          "package_name": "com.example.ted"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRBNaHhQclgLYxIqTr2OscrqF6S4Yj69I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

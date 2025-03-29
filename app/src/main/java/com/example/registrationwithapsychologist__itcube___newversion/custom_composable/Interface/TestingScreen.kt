@@ -1,7 +1,10 @@
 package com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface
 
 import android.app.DatePickerDialog
+import android.content.ContentValues.TAG
+import android.util.Log
 import android.widget.DatePicker
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,12 +12,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
+import com.example.registrationwithapsychologist__itcube___newversion.auth
 import java.util.Calendar
 import java.util.Date
 
@@ -125,6 +132,40 @@ fun TestingScreen(modifier: Modifier = Modifier) {
                         fontSize = 30.sp,
                         textAlign = TextAlign.Center
                     )
+                }
+            }
+            item {
+                var mail by remember { mutableStateOf("") }
+                var password by remember { mutableStateOf("") }
+                Column {
+                    TextField(
+                        value = mail,
+                        onValueChange = { mail = it }
+                    )
+                    TextField(
+                        value = password,
+                        onValueChange = { password = it}
+                    )
+                    Button(
+                        {
+                            auth.createUserWithEmailAndPassword(mail, password)
+                                .addOnCompleteListener(LocalContext) { task ->
+                                    if (task.isSuccessful) {
+                                        // Sign in success, update UI with the signed-in user's information
+                                        Log.d(TAG, "createUserWithEmail:success")
+                                        val user = auth.currentUser
+                                        // updateUI(user)
+                                    } else {
+                                        // If sign in fails, display a message to the user.
+                                        Log.w(TAG, "createUserWithEmail:failure", task.exception)
+
+                                        // updateUI(null)
+                                    }
+                                }
+                        }
+                    ) {
+                        Text("Зарегистрироваться")
+                    }
                 }
             }
         }

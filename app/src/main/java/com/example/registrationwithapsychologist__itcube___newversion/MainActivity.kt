@@ -1,6 +1,9 @@
 package com.example.registrationwithapsychologist__itcube___newversion
 
+import android.content.ContentValues.TAG
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -47,12 +50,16 @@ import com.example.registrationwithapsychologist__itcube___newversion.custom_com
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.SettingsScreen
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.TestingScreen
 import com.example.registrationwithapsychologist__itcube___newversion.ui.theme.RegistrationWithAPsychologistITCubeNewVersionTheme
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import kotlinx.coroutines.launch
 
 var currentPerson = accounts[0]
 var loggedInPerson = mutableMapOf(
     0 to currentPerson.password
 )
+
+val auth = Firebase.auth
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
