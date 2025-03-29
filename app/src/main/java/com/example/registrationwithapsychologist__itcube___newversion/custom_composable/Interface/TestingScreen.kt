@@ -5,6 +5,7 @@ import android.content.ContentValues.TAG
 import android.util.Log
 import android.widget.DatePicker
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -34,7 +37,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
-import com.example.registrationwithapsychologist__itcube___newversion.auth
 import java.util.Calendar
 import java.util.Date
 
@@ -134,6 +136,35 @@ fun TestingScreen(modifier: Modifier = Modifier) {
                     )
                 }
             }
+        }
+        Column {
+            CustomCalendar()
+        }
+    }
+}
+
+@Composable
+fun CustomCalendar() {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(7),
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        item {
+
+        }
+        for (el1 in calendarDate) {
+            item {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(el1.key)
+                    Text("--")
+                    for (el2 in el1.value) {
+                        Text("${el2[0]}:${if (el2[1] == 0) "00" else el2[1]}", modifier = Modifier.clickable {  })
+                    }
+                }
+            }
+        }
+        item {
+
             item {
                 var mail by remember { mutableStateOf("") }
                 var password by remember { mutableStateOf("") }

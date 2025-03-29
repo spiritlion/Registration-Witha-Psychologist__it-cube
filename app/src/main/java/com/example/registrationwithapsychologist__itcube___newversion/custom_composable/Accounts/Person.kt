@@ -1,6 +1,7 @@
 package com.example.registrationwithapsychologist__itcube.custom_composable.Accounts
 
 import android.telephony.PhoneNumberUtils
+import com.example.registrationwithapsychologist__itcube___newversion.R
 import java.time.LocalDate
 
 
@@ -14,6 +15,7 @@ data class PersonData(
     var birthday : LocalDate,
     var gender : Gender,
     var children: MutableList<BabyData> = mutableListOf(),
+    var image : Int = R.drawable.avatar_base,
     var description: String? = null
 ) {
 
