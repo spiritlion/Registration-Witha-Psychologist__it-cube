@@ -1,9 +1,11 @@
 package com.example.registrationwithapsychologist__itcube___newversion
 
 import android.content.ContentValues.TAG
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -20,6 +22,8 @@ import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,6 +57,7 @@ import com.example.registrationwithapsychologist__itcube___newversion.ui.theme.R
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 var avatars = listOf(
     R.drawable.avatar_base,
@@ -70,13 +75,35 @@ var loggedInPerson = mutableMapOf(
 
 val auth = Firebase.auth
 class MainActivity : ComponentActivity() {
+    private val isNonOlineBut = mutableStateOf(false)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             RegistrationWithAPsychologistITCubeNewVersionTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
-                    Main(modifier =  Modifier.padding(it))
+                    if (isOnline(this) || isNonOlineBut.value) {
+                        Main(modifier =  Modifier.padding(it))
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Warning,
+                                contentDescription = null
+                            )
+                            Text("Вы не в сети")
+                            Text("Зайдите позже пожалуйста")
+                            Button( {
+                                isNonOlineBut.value = true
+                            } ) {
+                                Text("Продолжить без интернета")
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -176,47 +203,71 @@ sealed class NavRoutes(val route: String) {
     data object Test : NavRoutes("test")
 }
 
-/*
 suspend fun RegistrationUser(email: String, password: String) {
     auth.createUserWithEmailAndPassword(email, password)
-        .addOnCompleteListener(this) { task ->
-            if (task.isSuccessful) {
-                // Sign in success, update UI with the signed-in user's information
-                Log.d(TAG, "createUserWithEmail:success")
-                val user = auth.currentUser
-                //updateUI(user)
-            } else {
-                // If sign in fails, display a message to the user.
-                Log.w(TAG, "createUserWithEmail:failure", task.exception)
-                Toast.makeText(
-                    baseContext,
-                    "Authentication failed.",
-                    Toast.LENGTH_SHORT,
-                ).show()
-                //updateUI(null)
-            }
-        }
+        .await()
+        .let { result -> if (result.user != null) {Log.d(TAG, "It`s ok")} else Log.w(TAG, "It`s non ok") }
+//        .addOnCompleteListener(this) { task ->
+//            if (task.isSuccessful) {
+//                // Sign in success, update UI with the signed-in user's information
+//                Log.d(TAG, "createUserWithEmail:success")
+//                val user = auth.currentUser
+//                //updateUI(user)
+//            } else {
+//                // If sign in fails, display a message to the user.
+//                Log.w(TAG, "createUserWithEmail:failure", task.exception)
+//                Toast.makeText(
+//                    baseContext,
+//                    "Authentication failed.",
+//                    Toast.LENGTH_SHORT,
+//                ).show()
+//                //updateUI(null)
+//            }
+//        }
 }
- */
-/*
+
 suspend fun LogUser(email: String, password: String) {
     auth.signInWithEmailAndPassword(email, password)
-        .addOnCompleteListener(this) { task ->
-            if (task.isSuccessful) {
-                // Sign in success, update UI with the signed-in user's information
-                Log.d(TAG, "signInWithEmail:success")
-                val user = auth.currentUser
-                updateUI(user)
-            } else {
-                // If sign in fails, display a message to the user.
-                Log.w(TAG, "signInWithEmail:failure", task.exception)
-                Toast.makeText(
-                    baseContext,
-                    "Authentication failed.",
-                    Toast.LENGTH_SHORT,
-                ).show()
-                updateUI(null)
+        .await()
+        .let { result -> if (result.user != null) {Log.d(TAG, "It`s ok")} else Log.w(TAG, "It`s non ok") }
+//        .addOnCompleteListener(this) { task ->
+//            if (task.isSuccessful) {
+//                // Sign in success, update UI with the signed-in user's information
+//                Log.d(TAG, "signInWithEmail:success")
+//                val user = auth.currentUser
+//                updateUI(user)
+//            } else {
+//                // If sign in fails, display a message to the user.
+//                Log.w(TAG, "signInWithEmail:failure", task.exception)
+//                Toast.makeText(
+//                    baseContext,
+//                    "Authentication failed.",
+//                    Toast.LENGTH_SHORT,
+//                ).show()
+//                updateUI(null)
+//            }
+//        }
+}
+
+fun MainActivity.isOnline(context: Context): Boolean {
+    val connectivityManager =
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    if (connectivityManager != null) {
+        val capabilities =
+            connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        if (capabilities != null) {
+            if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                Log.i("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
+                return true
+            } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                Log.i("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
+                return true
+            } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
+                Log.i("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
+                return true
             }
         }
+    }
+    return false
 }
- */
+

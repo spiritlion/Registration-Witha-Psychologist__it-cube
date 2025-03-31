@@ -6,6 +6,7 @@ import java.time.LocalDate
 
 
 data class PersonData(
+    var uid : Int = 0x00010000,
     var surname : String,
     var name : String,
     var patronymiс : String,

@@ -37,10 +37,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
+import com.example.registrationwithapsychologist__itcube___newversion.LogUser
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
 fun TestingScreen(modifier: Modifier = Modifier) {
     Column {
@@ -134,6 +138,30 @@ fun TestingScreen(modifier: Modifier = Modifier) {
                         fontSize = 30.sp,
                         textAlign = TextAlign.Center
                     )
+                }
+            }
+            item {
+                var mail by remember { mutableStateOf("") }
+                var password by remember { mutableStateOf("") }
+                Column {
+                    TextField(
+                        value = mail,
+                        onValueChange = { mail = it }
+                    )
+                    TextField(
+                        value = password,
+                        onValueChange = { password = it }
+                    )
+                    Button(
+                        {
+                            GlobalScope.launch {
+                                LogUser(mail, password)
+                            }
+                        }
+                    )
+                    {
+                        Text("Войти")
+                    }
                 }
             }
         }
