@@ -54,173 +54,14 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.launch
 
-var calendarDate : MutableMap<String, MutableList<MutableList<Int>>> = mutableMapOf(
-    "пн" to mutableListOf(
-        mutableListOf(
-            8, 0
-        ),
-        mutableListOf(
-            9, 0
-        ),
-        mutableListOf(
-            10, 0
-        ),
-        mutableListOf(
-            11, 0
-        ),
-        mutableListOf(
-            12, 0
-        ),
-        mutableListOf(
-            13, 0
-        ),
-        mutableListOf(
-            14, 0
-        ),
-        mutableListOf(
-            15, 0
-        ),
-        mutableListOf(
-            16, 0
-        ),
-        mutableListOf(
-            17, 0
-        )
-    ),
-    "вт" to mutableListOf(
-        mutableListOf(
-            8, 0
-        ),
-        mutableListOf(
-            9, 0
-        ),
-        mutableListOf(
-            10, 0
-        ),
-        mutableListOf(
-            11, 0
-        ),
-        mutableListOf(
-            12, 0
-        ),
-        mutableListOf(
-            13, 0
-        ),
-        mutableListOf(
-            14, 0
-        ),
-        mutableListOf(
-            15, 0
-        ),
-        mutableListOf(
-            16, 0
-        ),
-        mutableListOf(
-            17, 0
-        )
-    ),
-    "ср" to mutableListOf(
-        mutableListOf(
-            8, 0
-        ),
-        mutableListOf(
-            9, 0
-        ),
-        mutableListOf(
-            10, 0
-        ),
-        mutableListOf(
-            11, 0
-        ),
-        mutableListOf(
-            12, 0
-        ),
-        mutableListOf(
-            13, 0
-        ),
-        mutableListOf(
-            14, 0
-        ),
-        mutableListOf(
-            15, 0
-        ),
-        mutableListOf(
-            16, 0
-        ),
-        mutableListOf(
-            17, 0
-        )
-    ),
-    "чт" to mutableListOf(
-        mutableListOf(
-            8, 0
-        ),
-        mutableListOf(
-            9, 0
-        ),
-        mutableListOf(
-            10, 0
-        ),
-        mutableListOf(
-            11, 0
-        ),
-        mutableListOf(
-            12, 0
-        ),
-        mutableListOf(
-            13, 0
-        ),
-        mutableListOf(
-            14, 0
-        ),
-        mutableListOf(
-            15, 0
-        ),
-        mutableListOf(
-            16, 0
-        ),
-        mutableListOf(
-            17, 0
-        )
-    ),
-    "пт" to mutableListOf(
-        mutableListOf(
-            8, 0
-        ),
-        mutableListOf(
-            9, 0
-        ),
-        mutableListOf(
-            10, 0
-        ),
-        mutableListOf(
-            11, 0
-        ),
-        mutableListOf(
-            12, 0
-        ),
-        mutableListOf(
-            13, 0
-        ),
-        mutableListOf(
-            14, 0
-        ),
-        mutableListOf(
-            15, 0
-        ),
-        mutableListOf(
-            16, 0
-        ),
-        mutableListOf(
-            17, 0
-        )
-    )
-)
-
 var avatars = listOf(
     R.drawable.avatar_base,
-    R.drawable.avatar_man,
-    R.drawable.avatar_woman
+    R.drawable.avatar_man1,
+    R.drawable.avatar_woman1,
+    R.drawable.avatar_man2,
+    R.drawable.avatar_woman2,
+    R.drawable.avatar_cat,
+    R.drawable.avatar_dog
 )
 var currentPerson = accounts[0]
 var loggedInPerson = mutableMapOf(
@@ -249,6 +90,7 @@ fun Main(modifier: Modifier = Modifier) {
         NavBar(navController = navController)
     }
 }
+
 @Composable
 fun NavBar(navController: NavHostController){
     val items = listOf("Информация о психологе", "Запись", "Аккаунт", "Настройки", "TEST_SCREEN")
@@ -321,9 +163,6 @@ fun NavBar(navController: NavHostController){
     )
 }
 
-
-
-
 sealed class NavRoutes(val route: String) {
     data object Info : NavRoutes("info")
     data object Schedule : NavRoutes("schedule")
@@ -336,3 +175,48 @@ sealed class NavRoutes(val route: String) {
     data object Main : NavRoutes("main")
     data object Test : NavRoutes("test")
 }
+
+/*
+suspend fun RegistrationUser(email: String, password: String) {
+    auth.createUserWithEmailAndPassword(email, password)
+        .addOnCompleteListener(this) { task ->
+            if (task.isSuccessful) {
+                // Sign in success, update UI with the signed-in user's information
+                Log.d(TAG, "createUserWithEmail:success")
+                val user = auth.currentUser
+                //updateUI(user)
+            } else {
+                // If sign in fails, display a message to the user.
+                Log.w(TAG, "createUserWithEmail:failure", task.exception)
+                Toast.makeText(
+                    baseContext,
+                    "Authentication failed.",
+                    Toast.LENGTH_SHORT,
+                ).show()
+                //updateUI(null)
+            }
+        }
+}
+ */
+/*
+suspend fun LogUser(email: String, password: String) {
+    auth.signInWithEmailAndPassword(email, password)
+        .addOnCompleteListener(this) { task ->
+            if (task.isSuccessful) {
+                // Sign in success, update UI with the signed-in user's information
+                Log.d(TAG, "signInWithEmail:success")
+                val user = auth.currentUser
+                updateUI(user)
+            } else {
+                // If sign in fails, display a message to the user.
+                Log.w(TAG, "signInWithEmail:failure", task.exception)
+                Toast.makeText(
+                    baseContext,
+                    "Authentication failed.",
+                    Toast.LENGTH_SHORT,
+                ).show()
+                updateUI(null)
+            }
+        }
+}
+ */

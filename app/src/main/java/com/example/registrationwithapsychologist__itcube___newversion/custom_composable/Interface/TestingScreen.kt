@@ -137,12 +137,9 @@ fun TestingScreen(modifier: Modifier = Modifier) {
                 }
             }
         }
-        Column {
-            CustomCalendar()
-        }
     }
 }
-
+/*
 @Composable
 fun CustomCalendar() {
     LazyVerticalGrid(
@@ -202,3 +199,5 @@ fun CustomCalendar() {
         }
     }
 }
+
+ */

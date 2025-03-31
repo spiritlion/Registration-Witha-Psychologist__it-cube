@@ -61,6 +61,7 @@ dependencies {
 
     implementation(libs.androidx.navigation.compose)
 
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth)
+    implementation(platform(libs.google.firebase.bom))
+    implementation(libs.google.firebase.auth)
+
 }
