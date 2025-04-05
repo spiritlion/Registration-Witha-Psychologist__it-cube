@@ -1,33 +1,26 @@
 package com.example.registrationwithapsychologist__itcube.custom_composable.Accounts
 
-import android.telephony.PhoneNumberUtils
 import com.example.registrationwithapsychologist__itcube___newversion.R
+import com.google.firebase.Timestamp
 import java.time.LocalDate
 
-
 data class PersonData(
-    var uid : Int = 0x00010000,
-    var surname : String,
-    var name : String,
-    var patronymiс : String,
-    var telephoneNumber : String,
-    var mail : String,
-    var password : String,
-    var birthday : LocalDate,
-    var gender : Gender,
-    var children: MutableList<BabyData> = mutableListOf(),
-    var image : Int = R.drawable.avatar_base,
+    var surname : String? = null,
+    var name : String? = null,
+    var patronymiс : String? = null,
+    var telephoneNumber : String? = null,
+    var mail : String? = null,
+    var password : String? = null,
+    var birthday : Timestamp? = null,
+    var genderIsMan : Boolean? = null,
+    var children: MutableList<BabyData>? = null,
+    var image : Int? = R.drawable.avatar_base,
     var description: String? = null
 ) {
-
-    enum class Gender {
-        Man,
-        Woman
-    }
     data class BabyData(
-        var surname: String,
-        var name: String,
-        var patronymiс: String,
-        var gender: Gender
+        var surname: String? = null,
+        var name: String? = null,
+        var patronymiс: String? = null,
+        var genderIsMan: Boolean? = null
     )
 }

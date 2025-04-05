@@ -1,11 +1,8 @@
 package com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface
 
 import android.app.DatePickerDialog
-import android.content.ContentValues.TAG
-import android.util.Log
+import android.content.Context
 import android.widget.DatePicker
-import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,10 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,6 +31,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
 import com.example.registrationwithapsychologist__itcube___newversion.LogUser
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -46,39 +42,39 @@ import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
-fun TestingScreen(modifier: Modifier = Modifier) {
+fun TestingScreen(modifier: Modifier = Modifier, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference) {
     Column {
         Text("Ещё не реализованные или ненужные функции")
         LazyColumn {
-            item {
-                var intermediateGender by remember { mutableStateOf(PersonData.Gender.Man) }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "Пол: "
-                    )
-                    Text("Мужской")
-                    Switch(
-                        checked = (intermediateGender == PersonData.Gender.Woman),
-                        onCheckedChange = {
-                            intermediateGender = if (it) {
-                                PersonData.Gender.Woman
-                            } else {
-                                PersonData.Gender.Man
-                            }
-                        },
-                        colors = SwitchDefaults.colors(
-                            checkedTrackColor = Color.Red,
-                            checkedThumbColor = Color.White,
-                            checkedBorderColor = Color.Red,
-                            uncheckedTrackColor = Color.Blue,
-                            uncheckedThumbColor = Color.White,
-                            uncheckedBorderColor = Color.Blue
-
-                        )
-                    )
-                    Text("Женский")
-                }
-            }
+//            item {
+//                var intermediateGender by remember { mutableStateOf(PersonData.Gender.Man) }
+//                Row(verticalAlignment = Alignment.CenterVertically) {
+//                    Text(
+//                        "Пол: "
+//                    )
+//                    Text("Мужской")
+//                    Switch(
+//                        checked = (intermediateGender == PersonData.Gender.Woman),
+//                        onCheckedChange = {
+//                            intermediateGender = if (it) {
+//                                PersonData.Gender.Woman
+//                            } else {
+//                                PersonData.Gender.Man
+//                            }
+//                        },
+//                        colors = SwitchDefaults.colors(
+//                            checkedTrackColor = Color.Red,
+//                            checkedThumbColor = Color.White,
+//                            checkedBorderColor = Color.Red,
+//                            uncheckedTrackColor = Color.Blue,
+//                            uncheckedThumbColor = Color.White,
+//                            uncheckedBorderColor = Color.Blue
+//
+//                        )
+//                    )
+//                    Text("Женский")
+//                }
+//            }
             item {
                 val mContext = LocalContext.current
 
@@ -155,7 +151,7 @@ fun TestingScreen(modifier: Modifier = Modifier) {
                     Button(
                         {
                             GlobalScope.launch {
-                                LogUser(mail, password)
+                                LogUser(mail, password, auth, users)
                             }
                         }
                     )

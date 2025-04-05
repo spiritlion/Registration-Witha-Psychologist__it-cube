@@ -44,7 +44,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.accounts
+import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
 import com.example.registrationwithapsychologist__itcube.custom_composable.Interface.AccountScreen
 import com.example.registrationwithapsychologist__itcube.custom_composable.Interface.MenuScreen
 import com.example.registrationwithapsychologist__itcube.custom_composable.Interface.RegistrationScreen
@@ -55,26 +55,20 @@ import com.example.registrationwithapsychologist__itcube___newversion.custom_com
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.TestingScreen
 import com.example.registrationwithapsychologist__itcube___newversion.ui.theme.RegistrationWithAPsychologistITCubeNewVersionTheme
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-var avatars = listOf(
-    R.drawable.avatar_base,
-    R.drawable.avatar_man1,
-    R.drawable.avatar_woman1,
-    R.drawable.avatar_man2,
-    R.drawable.avatar_woman2,
-    R.drawable.avatar_cat,
-    R.drawable.avatar_dog
-)
-var currentPerson = accounts[0]
-var loggedInPerson = mutableMapOf(
-    0 to currentPerson.password
-)
+var currentPerson : PersonData? = null
 
-val auth = Firebase.auth
 class MainActivity : ComponentActivity() {
+    val auth = Firebase.auth
+    var db = Firebase.firestore
+    var users = db.collection("users")
     private val isNonOlineBut = mutableStateOf(false)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,7 +77,7 @@ class MainActivity : ComponentActivity() {
             RegistrationWithAPsychologistITCubeNewVersionTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
                     if (isOnline(this) || isNonOlineBut.value) {
-                        Main(modifier =  Modifier.padding(it))
+                        Main(modifier =  Modifier.padding(it), auth, db, users)
                     } else {
                         Column(
                             modifier = Modifier
@@ -111,15 +105,15 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Main(modifier: Modifier = Modifier) {
+fun Main(modifier: Modifier = Modifier, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference) {
     val navController = rememberNavController()
     Column(modifier) {
-        NavBar(navController = navController)
+        NavBar(navController = navController, auth, db, users)
     }
 }
 
 @Composable
-fun NavBar(navController: NavHostController){
+fun NavBar(navController: NavHostController, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference){
     val items = listOf("Информация о психологе", "Запись", "Аккаунт", "Настройки", "TEST_SCREEN")
     val selectedItem = remember { mutableStateOf("Запись к психологу. IT-куб") }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -183,7 +177,7 @@ fun NavBar(navController: NavHostController){
                     composable(NavRoutes.Log.route) { LogScreen(navController = navController) }
 
                     composable(NavRoutes.Main.route) { MainMenuScreen(scope = scope, drawerState = drawerState) }
-                    composable(NavRoutes.Test.route) { TestingScreen() }
+                    composable(NavRoutes.Test.route) { TestingScreen(auth = auth, db = db, users = users) }
                 }
             }
         }
@@ -203,7 +197,7 @@ sealed class NavRoutes(val route: String) {
     data object Test : NavRoutes("test")
 }
 
-suspend fun RegistrationUser(email: String, password: String) {
+suspend fun RegistrationUser(email: String, password: String, auth : FirebaseAuth, db: FirebaseFirestore, users: CollectionReference) {
     auth.createUserWithEmailAndPassword(email, password)
         .await()
         .let { result -> if (result.user != null) {Log.d(TAG, "It`s ok")} else Log.w(TAG, "It`s non ok") }
@@ -224,9 +218,10 @@ suspend fun RegistrationUser(email: String, password: String) {
 //                //updateUI(null)
 //            }
 //        }
+users.document().set(/* PersonData */)
 }
 
-suspend fun LogUser(email: String, password: String) {
+suspend fun LogUser(email: String, password: String, auth : FirebaseAuth, users: CollectionReference) {
     auth.signInWithEmailAndPassword(email, password)
         .await()
         .let { result -> if (result.user != null) {Log.d(TAG, "It`s ok")} else Log.w(TAG, "It`s non ok") }
@@ -247,25 +242,24 @@ suspend fun LogUser(email: String, password: String) {
 //                updateUI(null)
 //            }
 //        }
+    currentPerson = users.document(auth.uid!!).get().await().toObject(PersonData::class.java)
 }
 
 fun MainActivity.isOnline(context: Context): Boolean {
     val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    if (connectivityManager != null) {
-        val capabilities =
-            connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-        if (capabilities != null) {
-            if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-                Log.i("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
-                return true
-            } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                Log.i("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
-                return true
-            } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
-                Log.i("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
-                return true
-            }
+    val capabilities =
+        connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+    if (capabilities != null) {
+        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+            Log.i("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
+            return true
+        } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+            Log.i("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
+            return true
+        } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
+            Log.i("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
+            return true
         }
     }
     return false

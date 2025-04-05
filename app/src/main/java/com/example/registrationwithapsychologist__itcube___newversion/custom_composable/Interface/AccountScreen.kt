@@ -43,14 +43,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
-import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.accounts
 import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.R
 import com.example.registrationwithapsychologist__itcube___newversion.avatars
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
-import com.example.registrationwithapsychologist__itcube___newversion.loggedInPerson
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostController) {
     var isEditingMode by remember { mutableStateOf(false) }
@@ -58,7 +55,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
         if (!isEditingMode) {
             var isAddingBaby by remember { mutableStateOf(false) }
             var isShowBaby by remember { mutableStateOf(false) }
-            var showBaby : PersonData.BabyData? by remember { mutableStateOf(null) }
+            var showBaby: PersonData.BabyData? by remember { mutableStateOf(null) }
             var isEditingBaby by remember { mutableStateOf(false) }
             var isСhangeAccount by remember { mutableStateOf(false) }
             Box(modifier = Modifier.fillMaxWidth()) {
@@ -84,42 +81,44 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Image(
-                            painter = painterResource(currentPerson.image),
+                            painter = painterResource(currentPerson!!.image!!),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(64.dp)
                                 .clip(CircleShape)
                         )
                         Text(" ")
-                        Text(currentPerson.surname)
+                        Text(currentPerson!!.surname!!)
                         Text(" ")
-                        Text(currentPerson.name)
+                        Text(currentPerson!!.name!!)
                         Text(" ")
-                        Text(currentPerson.patronymiс)
+                        Text(currentPerson!!.patronymiс!!)
                     }
                 }
                 item {
-                    Text("Дата рождения: ${currentPerson.birthday}")
+                    Text("Дата рождения: ${currentPerson!!.birthday!!}")
                 }
+//                item {
+//                    Text("Email: ${currentPerson!!.mail!!}")
+//                }
                 item {
-                    Text("Email: ${currentPerson.mail}")
+                    //Text("Телефон: ${currentPerson.telephoneNumber.slice(0..1)}(${currentPerson.telephoneNumber.slice(2..4)})${currentPerson.telephoneNumber.slice(5..7)}-${currentPerson.telephoneNumber.slice(8..9)}-${currentPerson.telephoneNumber.slice(10..11)}")
+                    Text("Телефон: ${currentPerson!!.telephoneNumber!!}")
                 }
+//                item {
+//                    Text(
+//                        "Пол: ${
+//                            when (currentPerson.gender) {
+//                                PersonData.Gender.Man -> "Мужской"
+//                                PersonData.Gender.Woman -> "Женский"
+//                            }
+//                        }"
+//                    )
+//                }
                 item {
-                    Text("Телефон: ${currentPerson.telephoneNumber.slice(0..1)}(${currentPerson.telephoneNumber.slice(2..4)})${currentPerson.telephoneNumber.slice(5..7)}-${currentPerson.telephoneNumber.slice(8..9)}-${currentPerson.telephoneNumber.slice(10..11)}")
+                    Text("О себе: ${currentPerson?.description ?: "empty"}")
                 }
-                item {
-                    Text(
-                        "Пол: ${
-                            when (currentPerson.gender) {
-                                PersonData.Gender.Man -> "Мужской"
-                                PersonData.Gender.Woman -> "Женский"
-                            }
-                        }"
-                    )
-                }
-                item {
-                    Text("О себе: ${currentPerson.description}")
-                }
+                /*
                 item {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -165,6 +164,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         }
                     }
                 }
+                 */
                 item {
                     Button(
                         onClick = { isСhangeAccount = true },
@@ -174,6 +174,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                     }
                 }
             }
+            /*
             if (isShowBaby) {
                 AlertDialog(
                     onDismissRequest = { isShowBaby = false},
@@ -211,6 +212,8 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                     }
                 )
             }
+             */
+            /*
             if (isEditingBaby) {
                 var intermediateSurname by remember { mutableStateOf(showBaby!!.surname) }
                 var intermediateName by remember { mutableStateOf(showBaby!!.name) }
@@ -806,4 +809,9 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
             }
         }
     }
+
+             */
+        }
+    }
 }
+

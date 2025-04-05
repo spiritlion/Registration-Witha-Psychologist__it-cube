@@ -64,4 +64,5 @@ dependencies {
     implementation(platform(libs.google.firebase.bom))
     implementation(libs.google.firebase.auth)
 
+    implementation(libs.firebase.firestore)
 }

@@ -47,12 +47,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
-import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData.Gender
-import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.accounts
-import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.avatars
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
-import com.example.registrationwithapsychologist__itcube___newversion.loggedInPerson
 import java.time.LocalDate
 import java.time.Month
 import kotlin.String
@@ -60,6 +56,7 @@ import kotlin.String
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostController) {
+    /*
     var state by remember { mutableIntStateOf(1) }
 
     var mail by remember { mutableStateOf("") }
@@ -364,4 +361,5 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
             }
         )
     }
+     */
 }

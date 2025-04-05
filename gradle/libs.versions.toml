@@ -14,6 +14,8 @@ navigationCompose = "2.7.7"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+firebase-database = { module = "com.google.firebase:firebase-database" }
+firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
 google-firebase-auth = { module = "com.google.firebase:firebase-auth" }
 google-firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

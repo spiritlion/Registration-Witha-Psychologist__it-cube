@@ -70,7 +70,7 @@ fun MenuScreen(modifier: Modifier = Modifier) {
 
     var isIRecording by remember { mutableStateOf(false) }
     var whoFromBabyIsRecording = remember { mutableStateOf(mutableMapOf<PersonData.BabyData, Boolean>()) }
-    for (el in currentPerson.children) {
+    for (el in currentPerson!!.children!!) {
         whoFromBabyIsRecording.value[el] = false
     }
     Row {
@@ -113,7 +113,7 @@ fun MenuScreen(modifier: Modifier = Modifier) {
                 }
                 Column {
                     Row {
-                        Text("${currentPerson.surname} ${currentPerson.name} ${currentPerson.patronymiс} (Вы)", modifier = Modifier.weight(1f))
+                        Text("${currentPerson!!.surname!!} ${currentPerson!!.name!!} ${currentPerson!!.patronymiс!!} (Вы)", modifier = Modifier.weight(1f))
                         Checkbox(
                             checked = isIRecording,
                             onCheckedChange = { isIRecording = it },
