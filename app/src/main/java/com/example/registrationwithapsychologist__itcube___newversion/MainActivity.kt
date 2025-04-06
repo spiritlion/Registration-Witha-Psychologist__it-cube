@@ -170,14 +170,14 @@ fun NavBar(navController: NavHostController, auth: FirebaseAuth, db : FirebaseFi
                 NavHost(navController, startDestination = NavRoutes.Main.route) {
                     composable(NavRoutes.Info.route) { InfoScreen() }
                     composable(NavRoutes.Schedule.route) { MenuScreen() }
-                    composable(NavRoutes.Account.route) { AccountScreen(navController = navController) }
+                    composable(NavRoutes.Account.route) { AccountScreen(navController = navController, auth = auth, db = db, users = users) }
                     composable(NavRoutes.Setting.route) { SettingsScreen() }
 
-                    composable(NavRoutes.Registration.route) { RegistrationScreen(navController = navController) }
-                    composable(NavRoutes.Log.route) { LogScreen(navController = navController) }
+                    composable(NavRoutes.Registration.route) { RegistrationScreen(navController = navController, auth = auth, db = db, users = users) }
+                    composable(NavRoutes.Log.route) { LogScreen(navController = navController, auth = auth, db = db, users = users) }
 
                     composable(NavRoutes.Main.route) { MainMenuScreen(scope = scope, drawerState = drawerState) }
-                    composable(NavRoutes.Test.route) { TestingScreen(auth = auth, db = db, users = users) }
+                    composable(NavRoutes.Test.route) { TestingScreen(navController = navController, auth = auth, db = db, users = users) }
                 }
             }
         }
@@ -197,52 +197,63 @@ sealed class NavRoutes(val route: String) {
     data object Test : NavRoutes("test")
 }
 
-suspend fun RegistrationUser(email: String, password: String, auth : FirebaseAuth, db: FirebaseFirestore, users: CollectionReference) {
+suspend fun RegistrationUser(email: String, password: String, auth : FirebaseAuth, db: FirebaseFirestore, users: CollectionReference, newPerson: PersonData) {
     auth.createUserWithEmailAndPassword(email, password)
         .await()
         .let { result -> if (result.user != null) {Log.d(TAG, "It`s ok")} else Log.w(TAG, "It`s non ok") }
-//        .addOnCompleteListener(this) { task ->
-//            if (task.isSuccessful) {
-//                // Sign in success, update UI with the signed-in user's information
-//                Log.d(TAG, "createUserWithEmail:success")
-//                val user = auth.currentUser
-//                //updateUI(user)
-//            } else {
-//                // If sign in fails, display a message to the user.
-//                Log.w(TAG, "createUserWithEmail:failure", task.exception)
-//                Toast.makeText(
-//                    baseContext,
-//                    "Authentication failed.",
-//                    Toast.LENGTH_SHORT,
-//                ).show()
-//                //updateUI(null)
-//            }
-//        }
-users.document().set(/* PersonData */)
+    /*
+        .addOnCompleteListener(this) { task ->
+            if (task.isSuccessful) {
+                // Sign in success, update UI with the signed-in user's information
+                Log.d(TAG, "createUserWithEmail:success")
+                val user = auth.currentUser
+                //updateUI(user)
+            } else {
+                // If sign in fails, display a message to the user.
+                Log.w(TAG, "createUserWithEmail:failure", task.exception)
+                Toast.makeText(
+                    baseContext,
+                    "Authentication failed.",
+                    Toast.LENGTH_SHORT,
+                ).show()
+                //updateUI(null)
+            }
+        }
+     */
+    users.document(auth.uid!!).set(newPerson)
+    currentPerson = users.document(auth.uid!!)
+        .get()
+        .await()
+        .toObject(PersonData::class.java)
 }
 
 suspend fun LogUser(email: String, password: String, auth : FirebaseAuth, users: CollectionReference) {
     auth.signInWithEmailAndPassword(email, password)
         .await()
         .let { result -> if (result.user != null) {Log.d(TAG, "It`s ok")} else Log.w(TAG, "It`s non ok") }
-//        .addOnCompleteListener(this) { task ->
-//            if (task.isSuccessful) {
-//                // Sign in success, update UI with the signed-in user's information
-//                Log.d(TAG, "signInWithEmail:success")
-//                val user = auth.currentUser
-//                updateUI(user)
-//            } else {
-//                // If sign in fails, display a message to the user.
-//                Log.w(TAG, "signInWithEmail:failure", task.exception)
-//                Toast.makeText(
-//                    baseContext,
-//                    "Authentication failed.",
-//                    Toast.LENGTH_SHORT,
-//                ).show()
-//                updateUI(null)
-//            }
-//        }
-    currentPerson = users.document(auth.uid!!).get().await().toObject(PersonData::class.java)
+    /*
+        .addOnCompleteListener(this) { task ->
+            if (task.isSuccessful) {
+                // Sign in success, update UI with the signed-in user's information
+                Log.d(TAG, "signInWithEmail:success")
+                val user = auth.currentUser
+                updateUI(user)
+            } else {
+                // If sign in fails, display a message to the user.
+                Log.w(TAG, "signInWithEmail:failure", task.exception)
+                Toast.makeText(
+                    baseContext,
+                    "Authentication failed.",
+                    Toast.LENGTH_SHORT,
+                ).show()
+                updateUI(null)
+            }
+        }
+     */
+    currentPerson = users.document(auth.uid!!)
+        .get()
+        .await()
+        .toObject(PersonData::class.java)
 }
 
 fun MainActivity.isOnline(context: Context): Boolean {

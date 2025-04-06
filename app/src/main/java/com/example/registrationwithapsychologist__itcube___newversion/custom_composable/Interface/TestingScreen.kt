@@ -2,6 +2,7 @@ package com.example.registrationwithapsychologist__itcube___newversion.custom_co
 
 import android.app.DatePickerDialog
 import android.content.Context
+import android.widget.Button
 import android.widget.DatePicker
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,8 +30,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
 import com.example.registrationwithapsychologist__itcube___newversion.LogUser
+import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -42,39 +46,42 @@ import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
-fun TestingScreen(modifier: Modifier = Modifier, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference) {
+fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifier, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference) {
     Column {
         Text("Ещё не реализованные или ненужные функции")
         LazyColumn {
-//            item {
-//                var intermediateGender by remember { mutableStateOf(PersonData.Gender.Man) }
-//                Row(verticalAlignment = Alignment.CenterVertically) {
-//                    Text(
-//                        "Пол: "
-//                    )
-//                    Text("Мужской")
-//                    Switch(
-//                        checked = (intermediateGender == PersonData.Gender.Woman),
-//                        onCheckedChange = {
-//                            intermediateGender = if (it) {
-//                                PersonData.Gender.Woman
-//                            } else {
-//                                PersonData.Gender.Man
-//                            }
-//                        },
-//                        colors = SwitchDefaults.colors(
-//                            checkedTrackColor = Color.Red,
-//                            checkedThumbColor = Color.White,
-//                            checkedBorderColor = Color.Red,
-//                            uncheckedTrackColor = Color.Blue,
-//                            uncheckedThumbColor = Color.White,
-//                            uncheckedBorderColor = Color.Blue
-//
-//                        )
-//                    )
-//                    Text("Женский")
-//                }
-//            }
+            item {
+            /*
+                var intermediateGender by remember { mutableStateOf(PersonData.Gender.Man) }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "Пол: "
+                    )
+                    Text("Мужской")
+                    Switch(
+                        checked = (intermediateGender == PersonData.Gender.Woman),
+                        onCheckedChange = {
+                            intermediateGender = if (it) {
+                                PersonData.Gender.Woman
+                            } else {
+                                PersonData.Gender.Man
+                            }
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedTrackColor = Color.Red,
+                            checkedThumbColor = Color.White,
+                            checkedBorderColor = Color.Red,
+                            uncheckedTrackColor = Color.Blue,
+                            uncheckedThumbColor = Color.White,
+                            uncheckedBorderColor = Color.Blue
+
+                        )
+                    )
+                    Text("Женский")
+                }
+
+             */
+            }
             item {
                 val mContext = LocalContext.current
 
@@ -137,32 +144,27 @@ fun TestingScreen(modifier: Modifier = Modifier, auth: FirebaseAuth, db : Fireba
                 }
             }
             item {
-                var mail by remember { mutableStateOf("") }
-                var password by remember { mutableStateOf("") }
-                Column {
-                    TextField(
-                        value = mail,
-                        onValueChange = { mail = it }
-                    )
-                    TextField(
-                        value = password,
-                        onValueChange = { password = it }
-                    )
-                    Button(
-                        {
-                            GlobalScope.launch {
-                                LogUser(mail, password, auth, users)
-                            }
-                        }
-                    )
+                Button(
                     {
-                        Text("Войти")
+                        navController.navigate(NavRoutes.Log.route)
                     }
+                ) {
+                    Text("Войти")
+                }
+            }
+            item {
+                Button(
+                    {
+                        navController.navigate(NavRoutes.Registration.route)
+                    }
+                ) {
+                    Text("Зарегистрироваться")
                 }
             }
         }
     }
 }
+
 /*
 @Composable
 fun CustomCalendar() {

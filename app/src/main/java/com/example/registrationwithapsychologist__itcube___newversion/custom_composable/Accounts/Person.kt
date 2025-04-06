@@ -10,10 +10,9 @@ data class PersonData(
     var patronymiс : String? = null,
     var telephoneNumber : String? = null,
     var mail : String? = null,
-    var password : String? = null,
     var birthday : Timestamp? = null,
     var genderIsMan : Boolean? = null,
-    var children: MutableList<BabyData>? = null,
+    var children: MutableList<BabyData>? = mutableListOf(),
     var image : Int? = R.drawable.avatar_base,
     var description: String? = null
 ) {

@@ -10,8 +10,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -26,16 +29,26 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.registrationwithapsychologist__itcube___newversion.LogUser
 import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 
+@OptIn(DelicateCoroutinesApi::class)
 @Composable
-fun LogScreen(navController : NavHostController) {
-    /*
+fun LogScreen(navController : NavHostController, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference) {
     var itMailOrTelephone by remember { mutableStateOf("mail") }
     var mail by remember { mutableStateOf("") }
     var telephone by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    var log by remember { mutableStateOf(false) }
     LazyColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -101,36 +114,15 @@ fun LogScreen(navController : NavHostController) {
         }
         item {
             Spacer(modifier = Modifier.height(20.dp))
-            Button( {
-                when (itMailOrTelephone) {
-                    "mail" -> {
-                        for (i in 0..accounts.size - 1) {
-                            if (accounts[i].mail == mail) {
-                                if (accounts[i].password == password) {
-                                    loggedInPerson[accounts.size - 1] = accounts[accounts.size - 1].password
-                                    currentPerson = accounts[accounts.size - 1]
-                                    navController.navigate(NavRoutes.Account.route)
-                                }
-                            }
-                        }
-                    }
-                    "telephone" -> {
-                        for (i in 0..accounts.size - 1) {
-                            if (accounts[i].telephoneNumber == telephone) {
-                                if (accounts[i].password == password) {
-                                    loggedInPerson[accounts.size - 1] = accounts[accounts.size - 1].password
-                                    currentPerson = accounts[accounts.size - 1]
-                                    navController.navigate(NavRoutes.Account.route)
-                                }
-                            }
-                        }
+            Button(
+                {
+                    GlobalScope.launch {
+                        LogUser(mail, password, auth, users)
                     }
                 }
-            }) {
+            ) {
                 Text("Войти")
             }
         }
     }
-
-     */
 }

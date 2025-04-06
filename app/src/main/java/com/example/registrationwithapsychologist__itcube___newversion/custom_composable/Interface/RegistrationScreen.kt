@@ -1,12 +1,9 @@
 package com.example.registrationwithapsychologist__itcube.custom_composable.Interface
 
-import android.content.res.Resources.Theme
-import android.telephony.PhoneNumberUtils
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,14 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -44,19 +39,26 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
+import com.example.registrationwithapsychologist__itcube___newversion.RegistrationUser
 import com.example.registrationwithapsychologist__itcube___newversion.avatars
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDate
-import java.time.Month
-import kotlin.String
+import java.util.Calendar
+import java.util.Date
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
-fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostController) {
-    /*
+fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostController, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference) {
     var state by remember { mutableIntStateOf(1) }
 
     var mail by remember { mutableStateOf("") }
@@ -67,12 +69,12 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
     var name by remember { mutableStateOf("") }
     var patronymiс by remember { mutableStateOf("") }
     var birthday by remember { mutableStateOf(listOf(12, 10, 1915)) }
-    var gender by remember { mutableStateOf(Gender.Man) }
+    var genderIsMan by remember { mutableStateOf(true) }
     var isAgree by remember { mutableStateOf(false) }
 
     val avatar by remember { mutableIntStateOf(avatars[0]) }
     var changeAvatar by remember { mutableStateOf(false) }
-    var description by remember { mutableStateOf(currentPerson.description) }
+    var description by remember { mutableStateOf(currentPerson?.description) }
     LazyColumn(
         modifier = modifier
             .fillMaxSize(),
@@ -186,7 +188,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                 }
                 item {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        val options = listOf(Gender.Man, Gender.Woman)
+                        val options = listOf(true, false)
                         var expanded by remember { mutableStateOf(false) }
                         // We want to react on tap/press on TextField to show menu
                         ExposedDropdownMenuBox(
@@ -197,9 +199,9 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                 // The `menuAnchor` modifier must be passed to the text field for correctness.
                                 modifier = Modifier.menuAnchor(),
                                 readOnly = true,
-                                value = when (gender) {
-                                    Gender.Man -> "Мужской"
-                                    Gender.Woman -> "Женский"
+                                value = when (genderIsMan) {
+                                    true -> "Мужской"
+                                    false -> "Женский"
                                 },
                                 onValueChange = {},
                                 label = { Text("Пол") },
@@ -215,13 +217,13 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                         text = {
                                             Text(
                                                 when (selectionOption) {
-                                                    Gender.Man -> "Мужской"
-                                                    Gender.Woman -> "Женский"
+                                                    true -> "Мужской"
+                                                    false -> "Женский"
                                                 }
                                             )
                                         },
                                         onClick = {
-                                            gender = selectionOption
+                                            genderIsMan = selectionOption
                                             expanded = false
                                         },
                                         contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
@@ -256,21 +258,31 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                             patronymiс != "" &&
                             isAgree
                         ) {
-                            accounts.add(
-                                PersonData(
-                                    surname = surname,
-                                    name = name,
-                                    patronymiс = patronymiс,
-                                    mail = mail,
+                            GlobalScope.launch {
+                                RegistrationUser(
+                                    email = mail,
                                     password = password,
-                                    birthday = LocalDate.of(birthday[2], birthday[1], birthday[0]),
-                                    gender = gender,
-                                    telephoneNumber = telephone
+                                    auth = auth,
+                                    users = users,
+                                    db = db,
+                                    newPerson = PersonData(
+                                        surname = surname,
+                                        name = name,
+                                        patronymiс = patronymiс,
+                                        telephoneNumber = telephone,
+                                        mail = mail,
+                                        birthday = Timestamp(
+                                            date = Calendar.getInstance()
+                                                .apply {
+                                                     set(birthday[2], birthday[1], birthday[0])
+                                                }
+                                                .time
+                                        )
+                                    )
                                 )
-                            )
-                            loggedInPerson[accounts.size - 1] = accounts[accounts.size - 1].password
-                            currentPerson = accounts[accounts.size - 1]
+                            }
                             state ++
+
                         }
                     }) {
                         Text("Далее")
@@ -337,7 +349,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                     .clip(CircleShape)
                                     .border(
                                         5.dp,
-                                        if (el == currentPerson.image) {
+                                        if (el == currentPerson?.image) {
                                             MaterialTheme.colorScheme.outline
                                         } else {
                                             Color.Transparent
@@ -345,7 +357,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                         CircleShape
                                     )
                                     .clickable {
-                                        currentPerson.image = el
+                                        currentPerson?.image = el
                                         changeAvatar = false
                                     }
                             )
@@ -361,5 +373,4 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
             }
         )
     }
-     */
 }

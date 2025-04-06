@@ -70,7 +70,7 @@ fun MenuScreen(modifier: Modifier = Modifier) {
 
     var isIRecording by remember { mutableStateOf(false) }
     var whoFromBabyIsRecording = remember { mutableStateOf(mutableMapOf<PersonData.BabyData, Boolean>()) }
-    for (el in currentPerson!!.children!!) {
+    for (el in currentPerson?.children ?: listOf<PersonData.BabyData>()) {
         whoFromBabyIsRecording.value[el] = false
     }
     Row {
