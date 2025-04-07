@@ -7,18 +7,25 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -31,12 +38,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
 import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.R
+import com.example.registrationwithapsychologist__itcube___newversion.avatars
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
@@ -94,9 +104,9 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                     item {
                         Text("Дата рождения: ${currentPerson!!.birthday!!}")
                     }
-                item {
-                    Text("Email: ${auth.currentUser?.email}")
-                }
+                    item {
+                        Text("Email: ${auth.currentUser?.email}")
+                    }
                     item {
                         //Text("Телефон: ${currentPerson.telephoneNumber.slice(0..1)}(${currentPerson.telephoneNumber.slice(2..4)})${currentPerson.telephoneNumber.slice(5..7)}-${currentPerson.telephoneNumber.slice(8..9)}-${currentPerson.telephoneNumber.slice(10..11)}")
                         Text("Телефон: ${currentPerson!!.telephoneNumber!!}")
@@ -130,11 +140,19 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                     }
                                 ) {
                                     when (el.genderIsMan) {
-                                        true -> Icon(painter = painterResource(R.drawable.baby_boy_face), null)
-                                        false -> Icon(painter = painterResource(R.drawable.baby_girl_face), null)
-                                        else -> { }
+                                        true -> Icon(
+                                            painter = painterResource(R.drawable.baby_boy_face),
+                                            null
+                                        )
+
+                                        false -> Icon(
+                                            painter = painterResource(R.drawable.baby_girl_face),
+                                            null
+                                        )
+
+                                        else -> {}
                                     }
-                                    Column{
+                                    Column {
                                         Text(el.surname ?: "no surname")
                                         Text(el.name ?: "no name")
                                         Text(el.patronymiс ?: "no patrynomic")
@@ -151,7 +169,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 }
                             }
                             Row(
-                                modifier = Modifier.clickable{ isAddingBaby = true }
+                                modifier = Modifier.clickable { isAddingBaby = true }
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.add),
@@ -172,10 +190,9 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         }
                     }
                 }
-                /*
                 if (isShowBaby) {
                     AlertDialog(
-                        onDismissRequest = { isShowBaby = false},
+                        onDismissRequest = { isShowBaby = false },
                         title = { Text(text = "Просмотр информации о ребёнке") },
                         text = {
                             LazyColumn {
@@ -189,17 +206,23 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                     Text("Отчество: ${showBaby!!.patronymiс}")
                                 }
                                 item {
-                                    Text("Пол: ${
-                                        when (showBaby!!.gender) {
-                                            PersonData.Gender.Man -> "Мужской"
-                                            PersonData.Gender.Woman -> "Женский"
-                                        }
-                                    }")
+                                    Text(
+                                        "Пол: ${
+                                            when (showBaby!!.genderIsMan) {
+                                                true -> "Мужской"
+                                                false -> "Женский"
+                                                else -> {}
+                                            }
+                                        }"
+                                    )
                                 }
                             }
-                               },
+                        },
                         confirmButton = {
-                            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
                                 Button({ isShowBaby = false }) {
                                     Text("Ок", fontSize = 22.sp)
                                 }
@@ -210,21 +233,19 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         }
                     )
                 }
-                 */
-                /*
                 if (isEditingBaby) {
                     var intermediateSurname by remember { mutableStateOf(showBaby!!.surname) }
                     var intermediateName by remember { mutableStateOf(showBaby!!.name) }
                     var intermediatePatronymiс by remember { mutableStateOf(showBaby!!.patronymiс) }
-                    var intermediateGender by remember { mutableStateOf(showBaby!!.gender) }
+                    var intermediateGender by remember { mutableStateOf(showBaby!!.genderIsMan) }
                     AlertDialog(
-                        onDismissRequest = { isShowBaby = false},
+                        onDismissRequest = { isShowBaby = false },
                         title = { Text(text = "Изменение информации о ребёнке") },
                         text = {
                             LazyColumn {
                                 item {
                                     TextField(
-                                        value = intermediateName,
+                                        value = intermediateName ?: "",
                                         onValueChange = { stringParameter ->
                                             intermediateName = stringParameter
                                         },
@@ -234,7 +255,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 }
                                 item {
                                     TextField(
-                                        value = intermediateSurname,
+                                        value = intermediateSurname ?: "",
                                         onValueChange = { stringParameter ->
                                             intermediateSurname = stringParameter
                                         },
@@ -244,7 +265,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 }
                                 item {
                                     TextField(
-                                        value = intermediatePatronymiс,
+                                        value = intermediatePatronymiс ?: "",
                                         onValueChange = { stringParameter ->
                                             intermediatePatronymiс = stringParameter
                                         },
@@ -253,7 +274,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                     )
                                 }
                                 item {
-                                    val options = listOf(PersonData.Gender.Man, PersonData.Gender.Woman)
+                                    val options = listOf(true, false)
                                     var expanded by remember { mutableStateOf(false) }
                                     // We want to react on tap/press on TextField to show menu
                                     ExposedDropdownMenuBox(
@@ -265,12 +286,17 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                             modifier = Modifier.menuAnchor(),
                                             readOnly = true,
                                             value = when (intermediateGender) {
-                                                PersonData.Gender.Man -> "Мужской"
-                                                PersonData.Gender.Woman -> "Женский"
+                                                true -> "Мужской"
+                                                false -> "Женский"
+                                                else -> ""
                                             },
                                             onValueChange = {},
                                             label = { Text("Пол") },
-                                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                                            trailingIcon = {
+                                                ExposedDropdownMenuDefaults.TrailingIcon(
+                                                    expanded = expanded
+                                                )
+                                            },
                                             colors = ExposedDropdownMenuDefaults.textFieldColors(),
                                         )
                                         ExposedDropdownMenu(
@@ -279,10 +305,14 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                         ) {
                                             options.forEach { selectionOption ->
                                                 DropdownMenuItem(
-                                                    text = { Text(when (selectionOption) {
-                                                        PersonData.Gender.Man -> "Мужской"
-                                                        PersonData.Gender.Woman -> "Женский"
-                                                    }) },
+                                                    text = {
+                                                        Text(
+                                                            when (selectionOption) {
+                                                                true -> "Мужской"
+                                                                false -> "Женский"
+                                                            }
+                                                        )
+                                                    },
                                                     onClick = {
                                                         intermediateGender = selectionOption
                                                         expanded = false
@@ -297,15 +327,19 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         },
                         confirmButton = {
                             Column(modifier = Modifier.fillMaxWidth()) {
-                                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
                                     Button({ isEditingBaby = false }) {
                                         Text("Отмена", fontSize = 22.sp)
                                     }
                                     Button({
-                                        showBaby!!.gender = intermediateGender
+                                        showBaby!!.genderIsMan = intermediateGender
                                         showBaby!!.name = intermediateName
                                         showBaby!!.surname = intermediateSurname
                                         showBaby!!.patronymiс = intermediatePatronymiс
+                                        users.document(auth.uid!!).set(currentPerson!!)
                                         isShowBaby = false
                                         isEditingBaby = false
                                         navController.navigate(NavRoutes.Account.route)
@@ -314,16 +348,16 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                     }
                                 }
                                 Button(
-                                    onClick =  {
+                                    onClick = {
                                         isEditingBaby = false
                                         isShowBaby = false
-                                        currentPerson.children.remove(showBaby)
+                                        currentPerson!!.children!!.remove(showBaby)
+                                        users.document(auth.uid!!).set(currentPerson!!)
                                         navController.navigate(NavRoutes.Account.route)
                                     },
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color.Red
                                     )
-
                                 ) {
                                     Text("Удалить информацию о ребёнке")
                                 }
@@ -332,14 +366,13 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         }
                     )
                 }
-                */
                 if (isAddingBaby) {
                     var intermediateBabyName by remember { mutableStateOf("") }
                     var intermediateBabySurname by remember { mutableStateOf("") }
                     var intermediateBabyPatronymic by remember { mutableStateOf("") }
                     var intermediateBabyGenderIsMan by remember { mutableStateOf(true) }
                     AlertDialog(
-                        onDismissRequest = {isAddingBaby = false},
+                        onDismissRequest = { isAddingBaby = false },
                         title = { Text("Добавление информации о ребёнке") },
                         text = {
                             LazyColumn {
@@ -391,7 +424,11 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                             },
                                             onValueChange = {},
                                             label = { Text("Пол") },
-                                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                                            trailingIcon = {
+                                                ExposedDropdownMenuDefaults.TrailingIcon(
+                                                    expanded = expanded
+                                                )
+                                            },
                                             colors = ExposedDropdownMenuDefaults.textFieldColors(),
                                         )
                                         ExposedDropdownMenu(
@@ -400,12 +437,17 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                         ) {
                                             options.forEach { selectionOption ->
                                                 DropdownMenuItem(
-                                                    text = { Text(when (selectionOption) {
-                                                        true -> "Мужской"
-                                                        false -> "Женский"
-                                                    }) },
+                                                    text = {
+                                                        Text(
+                                                            when (selectionOption) {
+                                                                true -> "Мужской"
+                                                                false -> "Женский"
+                                                            }
+                                                        )
+                                                    },
                                                     onClick = {
-                                                        intermediateBabyGenderIsMan = selectionOption
+                                                        intermediateBabyGenderIsMan =
+                                                            selectionOption
                                                         expanded = false
                                                     },
                                                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
@@ -421,7 +463,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 Button({ isAddingBaby = false }) {
                                     Text("Отмена")
                                 }
-                                Button( {
+                                Button({
                                     currentPerson!!.children!!.add(
                                         PersonData.BabyData(
                                             surname = intermediateBabySurname,
@@ -430,10 +472,10 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                             genderIsMan = intermediateBabyGenderIsMan
                                         )
                                     )
-                                    //db.document(auth.uid!!).set(currentPerson)
+                                    users.document(auth.uid!!).set(currentPerson!!)
                                     isAddingBaby = false
                                     navController.navigate(NavRoutes.Account.route)
-                                } ) {
+                                }) {
                                     Text("Сохранить")
                                 }
                             }
@@ -494,17 +536,18 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         }
                     )
                 }
+                */
             } else {
                 var isSave by remember { mutableStateOf(false) }
 
-                var intermediateSurname by remember { mutableStateOf(currentPerson.surname) }
-                var intermediateName by remember { mutableStateOf(currentPerson.name) }
-                var intermediatePatronymiс by remember { mutableStateOf(currentPerson.patronymiс) }
-                var intermediateBirthday by remember { mutableStateOf(currentPerson.birthday) }
-                var intermediateMail by remember { mutableStateOf(currentPerson.mail) }
-                var intermediateTelephone by remember { mutableStateOf(currentPerson.telephoneNumber) }
-                var intermediateGender by remember { mutableStateOf(currentPerson.gender) }
-                var intermediateDescription by remember { mutableStateOf(currentPerson.description) }
+                var intermediateSurname by remember { mutableStateOf(currentPerson!!.surname) }
+                var intermediateName by remember { mutableStateOf(currentPerson!!.name) }
+                var intermediatePatronymiс by remember { mutableStateOf(currentPerson!!.patronymiс) }
+                var intermediateBirthday by remember { mutableStateOf(currentPerson!!.birthday) }
+                var intermediateMail by remember { mutableStateOf(auth.currentUser!!.email) }
+                var intermediateTelephone by remember { mutableStateOf(currentPerson!!.telephoneNumber) }
+                var intermediateGender by remember { mutableStateOf(currentPerson!!.genderIsMan) }
+                var intermediateDescription by remember { mutableStateOf(currentPerson!!.description) }
                 Box(modifier = Modifier.fillMaxWidth()) {
                     Text("Завершить редактирование",
                         color = Color.Blue,
@@ -512,14 +555,14 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             .align(Alignment.TopEnd)
                             .clickable {
                                 if (
-                                    intermediateSurname != currentPerson.surname ||
-                                    intermediateName != currentPerson.name ||
-                                    intermediatePatronymiс != currentPerson.patronymiс ||
-                                    intermediateMail != currentPerson.mail ||
-                                    intermediateTelephone != currentPerson.telephoneNumber ||
-                                    intermediateBirthday != currentPerson.birthday ||
-                                    intermediateGender != currentPerson.gender ||
-                                    intermediateDescription != currentPerson.description
+                                    intermediateSurname != currentPerson!!.surname ||
+                                    intermediateName != currentPerson!!.name ||
+                                    intermediatePatronymiс != currentPerson!!.patronymiс ||
+                                    intermediateMail != auth.currentUser!!.email ||
+                                    intermediateTelephone != currentPerson!!.telephoneNumber ||
+                                    intermediateBirthday != currentPerson!!.birthday ||
+                                    intermediateGender != currentPerson!!.genderIsMan ||
+                                    intermediateDescription != currentPerson!!.description
                                 ) {
                                     isSave = true
                                 } else {
@@ -535,7 +578,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Image(
-                                painter = painterResource(currentPerson.image),
+                                painter = painterResource(currentPerson!!.image!!),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .size(64.dp)
@@ -567,7 +610,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                                             .clip(CircleShape)
                                                             .border(
                                                                 5.dp,
-                                                                if (el == currentPerson.image) {
+                                                                if (el == currentPerson!!.image) {
                                                                     MaterialTheme.colorScheme.outline
                                                                 } else {
                                                                     Color.Transparent
@@ -575,7 +618,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                                                 CircleShape
                                                             )
                                                             .clickable {
-                                                                currentPerson.image = el
+                                                                currentPerson!!.image = el
                                                                 changeAvatar = false
                                                             }
                                                     )
@@ -595,7 +638,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                     } // аватар
                     item {
                         TextField(
-                            value = intermediateSurname,
+                            value = intermediateSurname ?: "",
                             onValueChange = { stringParameter ->
                                 intermediateSurname = stringParameter
                             },
@@ -605,7 +648,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                     } // смена фамилии
                     item {
                         TextField(
-                            value = intermediateName,
+                            value = intermediateName ?: "",
                             onValueChange = { stringParameter ->
                                 intermediateName = stringParameter
                             },
@@ -614,10 +657,9 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         )
                     } // смена имени
                     item {
-                        TextField (
-                            value = intermediatePatronymiс,
-                            onValueChange = {
-                                    stringParameter ->
+                        TextField(
+                            value = intermediatePatronymiс ?: "",
+                            onValueChange = { stringParameter ->
                                 intermediatePatronymiс = stringParameter
                             },
                             placeholder = { Text("Введите вашу отчество (если есть)") },
@@ -656,7 +698,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                "Дата рождения: ${currentPerson.birthday}"
+                                "Дата рождения: ${currentPerson!!.birthday}"
                             )
                             Button(onClick = { showDatePicker = true }) {
                                 Text("Изменить")
@@ -664,22 +706,20 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         }
                     } // смена даты рождения
                     item {
-                        TextField (
-                            value = intermediateMail,
-                            onValueChange = {
-                                    stringParameter ->
+                        TextField(
+                            value = intermediateMail ?: "",
+                            onValueChange = { stringParameter ->
                                 intermediateMail = stringParameter
                             },
                             placeholder = { Text("Введите ваш Mail") },
                             label = { Text(text = "Mail") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-                            )
+                        )
                     } // смена mail
                     item {
-                        TextField (
-                            value = intermediateTelephone,
-                            onValueChange = {
-                                    stringParameter ->
+                        TextField(
+                            value = intermediateTelephone ?: "",
+                            onValueChange = { stringParameter ->
                                 intermediateTelephone = stringParameter
                             },
                             placeholder = { Text("Введите ваш телефон") },
@@ -688,7 +728,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         )
                     } // смена телефона
                     item {
-                        val options = listOf(PersonData.Gender.Man, PersonData.Gender.Woman)
+                        val options = listOf(true, false)
                         var expanded by remember { mutableStateOf(false) }
                         // We want to react on tap/press on TextField to show menu
                         ExposedDropdownMenuBox(
@@ -700,8 +740,9 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 modifier = Modifier.menuAnchor(),
                                 readOnly = true,
                                 value = when (intermediateGender) {
-                                    PersonData.Gender.Man -> "Мужской"
-                                    PersonData.Gender.Woman -> "Женский"
+                                    true -> "Мужской"
+                                    false -> "Женский"
+                                    else -> ""
                                 },
                                 onValueChange = {},
                                 label = { Text("Пол") },
@@ -714,10 +755,14 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             ) {
                                 options.forEach { selectionOption ->
                                     DropdownMenuItem(
-                                        text = { Text(when (selectionOption) {
-                                            PersonData.Gender.Man -> "Мужской"
-                                            PersonData.Gender.Woman -> "Женский"
-                                        }) },
+                                        text = {
+                                            Text(
+                                                when (selectionOption) {
+                                                    true -> "Мужской"
+                                                    false -> "Женский"
+                                                }
+                                            )
+                                        },
                                         onClick = {
                                             intermediateGender = selectionOption
                                             expanded = false
@@ -729,10 +774,9 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         }
                     } // смена "пола"
                     item {
-                        TextField (
+                        TextField(
                             value = intermediateDescription.toString(),
-                            onValueChange = {
-                                    stringParameter ->
+                            onValueChange = { stringParameter ->
                                 intermediateDescription = stringParameter
                             },
                             placeholder = { Text("Что вы можете рассказать о себе") },
@@ -748,7 +792,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         ) {
                             Spacer(modifier = Modifier.padding(20.dp))
                             Button(
-                                onClick = {  },
+                                onClick = { },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFFFF9800)
                                 )
@@ -756,7 +800,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 Text("Выйти из аккаунта")
                             }
                             Button(
-                                onClick = {  },
+                                onClick = { },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color.Red
                                 )
@@ -768,7 +812,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                 }
                 if (isSave) {
                     AlertDialog(
-                        onDismissRequest = { isSave = false},
+                        onDismissRequest = { isSave = false },
                         title = { Text(text = "Внимание") },
                         text = { Text("Вы не сохранили некотрые изменения") },
                         dismissButton = {
@@ -780,16 +824,20 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             Row {
                                 Button(
                                     {
-                                        currentPerson.surname = intermediateSurname
-                                        currentPerson.name = intermediateName
-                                        currentPerson.patronymiс = intermediatePatronymiс
-                                        currentPerson.mail = intermediateMail
-                                        if (intermediateTelephone[0] == '+') currentPerson.telephoneNumber = intermediateTelephone
-                                        else currentPerson.telephoneNumber = "+$intermediateTelephone"
-                                        currentPerson.birthday = intermediateBirthday
-                                        currentPerson.description = intermediateDescription
-                                        currentPerson.gender = intermediateGender
+                                        currentPerson!!.surname = intermediateSurname
+                                        currentPerson!!.name = intermediateName
+                                        currentPerson!!.patronymiс = intermediatePatronymiс
 
+                                        if (intermediateTelephone!![0] == '+') currentPerson!!.telephoneNumber =
+                                            intermediateTelephone
+                                        else currentPerson!!.telephoneNumber =
+                                            "+$intermediateTelephone"
+                                        currentPerson!!.birthday = intermediateBirthday
+                                        currentPerson!!.description = intermediateDescription
+                                        currentPerson!!.genderIsMan = intermediateGender
+
+                                        auth.currentUser!!.updateEmail(intermediateMail!!)
+                                        users.document(auth.uid!!).set(currentPerson!!)
                                         isSave = false
                                         isEditingMode = false
                                     }
@@ -809,13 +857,10 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                     )
                 }
             }
-        }
-
-                 */
-            }
         } else {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Text("Что-бы просматривать информацию об акаунте, необходимо войти или зарегистроваться:")
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
+                Text("Что-бы просматривать информацию об аккаунте, необходимо войти или зарегистроваться:", textAlign = TextAlign.Center)
+                Spacer(modifier = Modifier.padding(10.dp))
                 Button(
                     {
                         navController.navigate(NavRoutes.Log.route)

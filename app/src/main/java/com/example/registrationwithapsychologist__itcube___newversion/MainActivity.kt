@@ -60,6 +60,8 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -70,8 +72,15 @@ class MainActivity : ComponentActivity() {
     var db = Firebase.firestore
     var users = db.collection("users")
     private val isNonOlineBut = mutableStateOf(false)
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        GlobalScope.launch {
+            currentPerson = users.document(auth.uid!!)
+                .get()
+                .await()
+                .toObject(PersonData::class.java)
+        }
         enableEdgeToEdge()
         setContent {
             RegistrationWithAPsychologistITCubeNewVersionTheme {
@@ -169,7 +178,7 @@ fun NavBar(navController: NavHostController, auth: FirebaseAuth, db : FirebaseFi
                 }
                 NavHost(navController, startDestination = NavRoutes.Main.route) {
                     composable(NavRoutes.Info.route) { InfoScreen() }
-                    composable(NavRoutes.Schedule.route) { MenuScreen() }
+                    composable(NavRoutes.Schedule.route) { MenuScreen(navController) }
                     composable(NavRoutes.Account.route) { AccountScreen(navController = navController, auth = auth, db = db, users = users) }
                     composable(NavRoutes.Setting.route) { SettingsScreen() }
 
@@ -227,7 +236,7 @@ suspend fun RegistrationUser(email: String, password: String, auth : FirebaseAut
         .toObject(PersonData::class.java)
 }
 
-suspend fun LogUser(email: String, password: String, auth : FirebaseAuth, users: CollectionReference) {
+suspend fun LogUser(email: String, password: String, auth : FirebaseAuth, users: CollectionReference) : Boolean {
     auth.signInWithEmailAndPassword(email, password)
         .await()
         .let { result -> if (result.user != null) {Log.d(TAG, "It`s ok")} else Log.w(TAG, "It`s non ok") }
@@ -250,10 +259,15 @@ suspend fun LogUser(email: String, password: String, auth : FirebaseAuth, users:
             }
         }
      */
-    currentPerson = users.document(auth.uid!!)
-        .get()
-        .await()
-        .toObject(PersonData::class.java)
+    if (auth.currentUser != null){
+        currentPerson = users.document(auth.uid!!)
+            .get()
+            .await()
+            .toObject(PersonData::class.java)
+        return true
+    } else {
+        return true
+    }
 }
 
 fun MainActivity.isOnline(context: Context): Boolean {

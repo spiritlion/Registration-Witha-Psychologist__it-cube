@@ -23,147 +23,171 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
+import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
 import java.util.Calendar
 import java.util.Date
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable
-fun MenuScreen(modifier: Modifier = Modifier) {
-    var reason by remember { mutableStateOf("") }
+fun MenuScreen(navController : NavHostController, modifier: Modifier = Modifier) {
+    if (currentPerson != null) {
+        var reason by remember { mutableStateOf("") }
 
-    val mContext = LocalContext.current
+        val mContext = LocalContext.current
 
-    // Declaring integer values
-    // for year, month and day
-    val mYear: Int
-    val mMonth: Int
-    val mDay: Int
+        // Declaring integer values
+        // for year, month and day
+        val mYear: Int
+        val mMonth: Int
+        val mDay: Int
 
-    // Initializing a Calendar
-    val mCalendar = Calendar.getInstance()
+        // Initializing a Calendar
+        val mCalendar = Calendar.getInstance()
 
-    // Fetching current year, month and day
-    mYear = mCalendar.get(Calendar.YEAR)
-    mMonth = mCalendar.get(Calendar.MONTH)
-    mDay = mCalendar.get(Calendar.DAY_OF_MONTH)
+        // Fetching current year, month and day
+        mYear = mCalendar.get(Calendar.YEAR)
+        mMonth = mCalendar.get(Calendar.MONTH)
+        mDay = mCalendar.get(Calendar.DAY_OF_MONTH)
 
-    mCalendar.time = Date()
+        mCalendar.time = Date()
 
-    // Declaring a string value to
-    // store date in string format
-    val mDate = remember { mutableStateOf("") }
+        // Declaring a string value to
+        // store date in string format
+        val mDate = remember { mutableStateOf("") }
 
-    // Declaring DatePickerDialog and setting
-    // initial values as current values (present year, month and day)
-    val mDatePickerDialog = DatePickerDialog(
-        mContext,
-        { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
-            mDate.value = "$mDayOfMonth/${mMonth + 1}/$mYear"
-        }, mYear, mMonth, mDay
-    )
-
-
-    var isIRecording by remember { mutableStateOf(false) }
-    var whoFromBabyIsRecording = remember { mutableStateOf(mutableMapOf<PersonData.BabyData, Boolean>()) }
-    for (el in currentPerson?.children ?: listOf<PersonData.BabyData>()) {
-        whoFromBabyIsRecording.value[el] = false
-    }
-    Row {
-        Spacer(
-            modifier = Modifier
-                .padding(10.dp)
+        // Declaring DatePickerDialog and setting
+        // initial values as current values (present year, month and day)
+        val mDatePickerDialog = DatePickerDialog(
+            mContext,
+            { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
+                mDate.value = "$mDayOfMonth/${mMonth + 1}/$mYear"
+            }, mYear, mMonth, mDay
         )
-        Column(
-            modifier = Modifier
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.Start
-        ) {
-            Text(
-                text = "Запись",
-                fontSize = 40.sp,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-            )
+
+
+        var isIRecording by remember { mutableStateOf(false) }
+        var whoFromBabyIsRecording = remember { mutableStateOf(mutableMapOf<PersonData.BabyData, Boolean>()) }
+        for (el in currentPerson?.children ?: listOf<PersonData.BabyData>()) {
+            whoFromBabyIsRecording.value[el] = false
+        }
+        Row {
             Spacer(
-                modifier = Modifier.padding(20.dp)
+                modifier = Modifier
+                    .padding(10.dp)
             )
-            Row {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.Start
+            ) {
                 Text(
-                    text = "Дата: ${mDate.value} ",
+                    text = "Запись",
+                    fontSize = 40.sp,
                     modifier = Modifier
-                        .align(Alignment.CenterVertically)
+                        .align(Alignment.CenterHorizontally)
                 )
-                Button( { mDatePickerDialog.show() } ) {
-                    Text("Выбрать дату")
-                }
-            }
-            Column {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Spacer(
+                    modifier = Modifier.padding(20.dp)
+                )
+                Row {
                     Text(
-                        text = "Кто идёт: ",
+                        text = "Дата: ${mDate.value} ",
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
                     )
+                    Button( { mDatePickerDialog.show() } ) {
+                        Text("Выбрать дату")
+                    }
                 }
                 Column {
-                    Row {
-                        Text("${currentPerson!!.surname!!} ${currentPerson!!.name!!} ${currentPerson!!.patronymiс!!} (Вы)", modifier = Modifier.weight(1f))
-                        Checkbox(
-                            checked = isIRecording,
-                            onCheckedChange = { isIRecording = it },
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(
+                            text = "Кто идёт: ",
                             modifier = Modifier
-                                .width(50.dp)
+                                .align(Alignment.CenterVertically)
                         )
                     }
-                    for (el in whoFromBabyIsRecording.value) {
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            Text("${el.key.surname} ${el.key.name} ${el.key.patronymiс}", modifier = Modifier.weight(1f))
+                    Column {
+                        Row {
+                            Text("${currentPerson!!.surname!!} ${currentPerson!!.name!!} ${currentPerson!!.patronymiс!!} (Вы)", modifier = Modifier.weight(1f))
                             Checkbox(
-                                checked = el.value,
-                                onCheckedChange = {
-                                    val intermediate : MutableMap<PersonData. BabyData, Boolean> = mutableMapOf()
-                                    for (el in whoFromBabyIsRecording.value) {
-                                        intermediate[el.key] = el.value
-                                    }// пройтись циклом
-                                    intermediate[el.key] = it
-                                    whoFromBabyIsRecording = mutableStateOf(intermediate)
-                                                  },
+                                checked = isIRecording,
+                                onCheckedChange = { isIRecording = it },
                                 modifier = Modifier
                                     .width(50.dp)
                             )
                         }
+                        for (el in whoFromBabyIsRecording.value) {
+                            Row(modifier = Modifier.fillMaxWidth()) {
+                                Text("${el.key.surname} ${el.key.name} ${el.key.patronymiс}", modifier = Modifier.weight(1f))
+                                Checkbox(
+                                    checked = el.value,
+                                    onCheckedChange = {
+                                        val intermediate : MutableMap<PersonData. BabyData, Boolean> = mutableMapOf()
+                                        for (el in whoFromBabyIsRecording.value) {
+                                            intermediate[el.key] = el.value
+                                        }// пройтись циклом
+                                        intermediate[el.key] = it
+                                        whoFromBabyIsRecording = mutableStateOf(intermediate)
+                                    },
+                                    modifier = Modifier
+                                        .width(50.dp)
+                                )
+                            }
+                        }
                     }
                 }
+                TextField(
+                    value = reason,
+                    onValueChange = { reason = it },
+                    label = { Text("Причина") },
+                    placeholder = { Text("Почему вы решили записаться") }
+                )
+                Spacer(
+                    modifier = Modifier.padding(20.dp)
+                )
+                Button(
+                    onClick = {  },
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                ) {
+                    Text("Записаться")
+                }
             }
-            TextField(
-                value = reason,
-                onValueChange = { reason = it },
-                label = { Text("Причина") },
-                placeholder = { Text("Почему вы решили записаться") }
-            )
-            Spacer(
-                modifier = Modifier.padding(20.dp)
-            )
+        }
+    } else {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
+            Text("Что-бы записаться к психологу, необходимо войти или зарегистроваться:", textAlign = TextAlign.Center)
+            Spacer(modifier = Modifier.padding(10.dp))
             Button(
-                onClick = {  },
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
+                {
+                    navController.navigate(NavRoutes.Log.route)
+                }
             ) {
-                Text("Записаться")
+                Text("Войти")
+            }
+            Button(
+                {
+                    navController.navigate(NavRoutes.Registration.route)
+                }
+            ) {
+                Text("Зарегистрироваться")
             }
         }
     }
 }
 
 
-@Composable
-@Preview
-fun MenuScreenPreview() {
-    MenuScreen()
-}
+//@Composable
+//@Preview
+//fun MenuScreenPreview() {
+//    MenuScreen()
+//}

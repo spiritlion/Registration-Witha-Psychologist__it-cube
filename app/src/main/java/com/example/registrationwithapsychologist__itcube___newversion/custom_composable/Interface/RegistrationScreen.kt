@@ -1,9 +1,12 @@
 package com.example.registrationwithapsychologist__itcube.custom_composable.Interface
 
+import android.app.DatePickerDialog
+import android.widget.DatePicker
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,8 +39,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -68,7 +74,36 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
     var surname by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
     var patronymiс by remember { mutableStateOf("") }
-    var birthday by remember { mutableStateOf(listOf(12, 10, 1915)) }
+    val mContext = LocalContext.current
+
+    // Declaring integer values
+    // for year, month and day
+    val mYear: Int
+    val mMonth: Int
+    val mDay: Int
+
+    // Initializing a Calendar
+    val mCalendar = Calendar.getInstance()
+
+    // Fetching current year, month and day
+    mYear = mCalendar.get(Calendar.YEAR)
+    mMonth = mCalendar.get(Calendar.MONTH)
+    mDay = mCalendar.get(Calendar.DAY_OF_MONTH)
+
+    mCalendar.time = Date()
+
+    // Declaring a string value to
+    // store date in string format
+    val mDate = remember { mutableStateOf("") }
+
+    // Declaring DatePickerDialog and setting
+    // initial values as current values (present year, month and day)
+    val mDatePickerDialog = DatePickerDialog(
+        mContext,
+        { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
+            mDate.value = "$mDayOfMonth/${mMonth + 1}/$mYear"
+        }, mYear, mMonth, mDay
+    )
     var genderIsMan by remember { mutableStateOf(true) }
     var isAgree by remember { mutableStateOf(false) }
 
@@ -174,14 +209,20 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                     Spacer(modifier = Modifier.height(20.dp))
                 }
                 item {
-                    TextField(
-                        label = { Text("Дата рождения") },
-                        value = "${birthday[0]}.${birthday[1]}.${birthday[2]}",
-                        onValueChange = { birthday = listOf(it.toInt()) },
-                        placeholder = { Text("Введите вашу дату рождения") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        readOnly = true
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("День рождения: ${if (mDate.value == "") "Не выбрано" else mDate.value}")
+                        // Creating a button that on
+                        // click displays/shows the DatePickerDialog
+                        Button(
+                            onClick = {
+                                mDatePickerDialog.show()
+                            }, colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0XFF0F9D58)
+                            )
+                        ) {
+                            Text(text = "Выбрать дату", color = Color.White)
+                        }
+                    }
                 }
                 item {
                     Spacer(modifier = Modifier.height(20.dp))
@@ -270,11 +311,10 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                         name = name,
                                         patronymiс = patronymiс,
                                         telephoneNumber = telephone,
-                                        mail = mail,
                                         birthday = Timestamp(
                                             date = Calendar.getInstance()
                                                 .apply {
-                                                     set(birthday[2], birthday[1], birthday[0])
+                                                     set(mYear, mMonth, mDay)
                                                 }
                                                 .time
                                         )

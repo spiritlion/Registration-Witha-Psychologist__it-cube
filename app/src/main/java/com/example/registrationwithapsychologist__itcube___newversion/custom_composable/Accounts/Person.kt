@@ -9,7 +9,6 @@ data class PersonData(
     var name : String? = null,
     var patronymiс : String? = null,
     var telephoneNumber : String? = null,
-    var mail : String? = null,
     var birthday : Timestamp? = null,
     var genderIsMan : Boolean? = null,
     var children: MutableList<BabyData>? = mutableListOf(),
