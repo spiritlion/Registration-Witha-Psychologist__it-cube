@@ -70,8 +70,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.Record
 
 var currentPerson : PersonData? = null
+var listRecords : MutableList<Record> = mutableListOf()
 
 val Context.dataStore by preferencesDataStore(name = "settings")
 var isTheme = mutableIntStateOf(0) // 0 - system 1 - light 2 - dark
@@ -80,15 +82,24 @@ class MainActivity : ComponentActivity() {
     val auth = Firebase.auth
     var db = Firebase.firestore
     var users = db.collection("users")
+    var records = db.collection("records")
     private val isNonOlineBut = mutableStateOf(false)
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        GlobalScope.launch {
-            currentPerson = users.document(auth.uid!!)
-                .get()
-                .await()
-                .toObject(PersonData::class.java)
+        if (isOnline(this)) {
+            GlobalScope.launch {
+                if (auth.uid != null) {
+                    currentPerson = users.document(auth.uid!!)
+                        .get()
+                        .await()
+                        .toObject(PersonData::class.java)
+                }
+                listRecords = records
+                    .get()
+                    .await()
+                    .toObjects(Record::class.java)
+            }
         }
         enableEdgeToEdge()
         setContent {
@@ -109,7 +120,7 @@ class MainActivity : ComponentActivity() {
             RegistrationWithAPsychologistITCubeNewVersionTheme(isDarkTheme = isDarkTheme) {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
                     if (isOnline(this) || isNonOlineBut.value) {
-                        Main(modifier =  Modifier.padding(it), auth, db, users, repository)
+                        Main(modifier =  Modifier.padding(it), auth, db, users, repository, records)
                     } else {
                         Column(
                             modifier = Modifier
@@ -137,15 +148,15 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Main(modifier: Modifier = Modifier, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference, repository: DataStoreRepository) {
+fun Main(modifier: Modifier = Modifier, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference, repository: DataStoreRepository, records: CollectionReference) {
     val navController = rememberNavController()
     Column(modifier) {
-        NavBar(navController = navController, auth, db, users, repository)
+        NavBar(navController = navController, auth, db, users, repository, records)
     }
 }
 
 @Composable
-fun NavBar(navController: NavHostController, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference, repository: DataStoreRepository){
+fun NavBar(navController: NavHostController, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference, repository: DataStoreRepository, records: CollectionReference){
     val items = listOf("Информация о психологе", "Запись", "Аккаунт", "Настройки", "TEST_SCREEN")
     val selectedItem = remember { mutableStateOf("Запись к психологу. IT-куб") }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -202,7 +213,7 @@ fun NavBar(navController: NavHostController, auth: FirebaseAuth, db : FirebaseFi
                 NavHost(navController, startDestination = NavRoutes.Main.route) {
                     composable(NavRoutes.Info.route) { InfoScreen() }
                     composable(NavRoutes.Schedule.route) { MenuScreen(navController) }
-                    composable(NavRoutes.Account.route) { AccountScreen(navController = navController, auth = auth, db = db, users = users) }
+                    composable(NavRoutes.Account.route) { AccountScreen(navController = navController, auth = auth, db = db, users = users, records = records) }
                     composable(NavRoutes.Setting.route) { SettingsScreen(repository = repository) }
 
                     composable(NavRoutes.Registration.route) { RegistrationScreen(navController = navController, auth = auth, db = db, users = users) }

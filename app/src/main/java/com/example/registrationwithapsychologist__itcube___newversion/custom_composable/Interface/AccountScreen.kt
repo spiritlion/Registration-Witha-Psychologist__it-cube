@@ -20,6 +20,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -41,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -49,13 +51,14 @@ import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.R
 import com.example.registrationwithapsychologist__itcube___newversion.avatars
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
+import com.example.registrationwithapsychologist__itcube___newversion.listRecords
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostController, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference) {
+fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostController, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference, records: CollectionReference) {
     var isEditingMode by remember { mutableStateOf(false) }
     Column(modifier = modifier) {
         if (currentPerson != null) {
@@ -88,7 +91,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Image(
-                                painter = painterResource(currentPerson!!.image!!),
+                                painter = painterResource(currentPerson!!.image),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .size(64.dp)
@@ -112,20 +115,20 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         //Text("Телефон: ${currentPerson.telephoneNumber.slice(0..1)}(${currentPerson.telephoneNumber.slice(2..4)})${currentPerson.telephoneNumber.slice(5..7)}-${currentPerson.telephoneNumber.slice(8..9)}-${currentPerson.telephoneNumber.slice(10..11)}")
                         Text("Телефон: ${currentPerson!!.telephoneNumber!!}")
                     }
-//                item {
-//                    Text(
-//                        "Пол: ${
-//                            when (currentPerson.gender) {
-//                                PersonData.Gender.Man -> "Мужской"
-//                                PersonData.Gender.Woman -> "Женский"
-//                            }
-//                        }"
-//                    )
-//                }
+                    item {
+                        Text(
+                            "Пол: ${
+                                when (currentPerson!!.genderIsMan) {
+                                    true -> "Мужской"
+                                    false -> "Женский"
+                                    else -> "error"
+                                }
+                            }"
+                        )
+                    }
                     item {
                         Text("О себе: ${currentPerson?.description ?: "empty"}")
                     }
-
                     item {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -181,7 +184,28 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             }
                         }
                     }
-
+                    item {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Text("Ваши записи:")
+                            for (el in listRecords) {
+                                Card(
+                                    modifier = Modifier
+                                        .size(180.dp, 100.dp)
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                    ) {
+                                        Text("${el.time.toDate().day}.${el.time.toDate().month}.${el.time.toDate().year}")
+                                        Text("${el.time.toDate().hours}:${el.time.toDate().minutes}${if (el.time.toDate().minutes == 0) "0" else ""}")
+                                    }
+                                }
+                            }
+                        }
+                    }
                     item {
                         Button(
                             onClick = { isСhangeAccount = true },
