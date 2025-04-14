@@ -12,7 +12,7 @@ data class PersonData(
     var birthday : Timestamp? = null,
     var genderIsMan : Boolean? = null,
     var children: MutableList<BabyData>? = mutableListOf(),
-    var image : Int? = R.drawable.avatar_base,
+    var image : Int = R.drawable.avatar_base,
     var description: String? = null
 ) {
     data class BabyData(

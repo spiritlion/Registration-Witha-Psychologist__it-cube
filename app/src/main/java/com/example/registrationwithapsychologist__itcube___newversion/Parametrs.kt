@@ -7,6 +7,6 @@ var avatars = listOf(
     R.drawable.avatar_man2,
     R.drawable.avatar_woman2,
     R.drawable.avatar_cat,
-    R.drawable.avatar_dog
+    R.drawable.avatar_dog,
 )
 

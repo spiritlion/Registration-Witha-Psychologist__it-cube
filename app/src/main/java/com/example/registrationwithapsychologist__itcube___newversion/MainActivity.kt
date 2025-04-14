@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,12 +35,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -62,10 +67,14 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 var currentPerson : PersonData? = null
+
+val Context.dataStore by preferencesDataStore(name = "settings")
+var isTheme = mutableIntStateOf(0) // 0 - system 1 - light 2 - dark
 
 class MainActivity : ComponentActivity() {
     val auth = Firebase.auth
@@ -83,10 +92,24 @@ class MainActivity : ComponentActivity() {
         }
         enableEdgeToEdge()
         setContent {
-            RegistrationWithAPsychologistITCubeNewVersionTheme {
+            val context = LocalContext.current
+            val repository = remember { DataStoreRepository(context.dataStore) }
+
+            // Слушаем изменения в DataStore
+            LaunchedEffect(Unit) {
+                repository.intFlow.collectLatest { value ->
+                    isTheme.intValue = value
+                }
+            }
+            var isDarkTheme = when (isTheme.intValue) {
+                1 -> false
+                2 -> true
+                else -> isSystemInDarkTheme()
+            }
+            RegistrationWithAPsychologistITCubeNewVersionTheme(isDarkTheme = isDarkTheme) {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
                     if (isOnline(this) || isNonOlineBut.value) {
-                        Main(modifier =  Modifier.padding(it), auth, db, users)
+                        Main(modifier =  Modifier.padding(it), auth, db, users, repository)
                     } else {
                         Column(
                             modifier = Modifier
@@ -114,15 +137,15 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Main(modifier: Modifier = Modifier, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference) {
+fun Main(modifier: Modifier = Modifier, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference, repository: DataStoreRepository) {
     val navController = rememberNavController()
     Column(modifier) {
-        NavBar(navController = navController, auth, db, users)
+        NavBar(navController = navController, auth, db, users, repository)
     }
 }
 
 @Composable
-fun NavBar(navController: NavHostController, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference){
+fun NavBar(navController: NavHostController, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference, repository: DataStoreRepository){
     val items = listOf("Информация о психологе", "Запись", "Аккаунт", "Настройки", "TEST_SCREEN")
     val selectedItem = remember { mutableStateOf("Запись к психологу. IT-куб") }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -180,7 +203,7 @@ fun NavBar(navController: NavHostController, auth: FirebaseAuth, db : FirebaseFi
                     composable(NavRoutes.Info.route) { InfoScreen() }
                     composable(NavRoutes.Schedule.route) { MenuScreen(navController) }
                     composable(NavRoutes.Account.route) { AccountScreen(navController = navController, auth = auth, db = db, users = users) }
-                    composable(NavRoutes.Setting.route) { SettingsScreen() }
+                    composable(NavRoutes.Setting.route) { SettingsScreen(repository = repository) }
 
                     composable(NavRoutes.Registration.route) { RegistrationScreen(navController = navController, auth = auth, db = db, users = users) }
                     composable(NavRoutes.Log.route) { LogScreen(navController = navController, auth = auth, db = db, users = users) }

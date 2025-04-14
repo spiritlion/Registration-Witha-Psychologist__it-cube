@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -539,7 +540,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                 */
             } else {
                 var isSave by remember { mutableStateOf(false) }
-
+                var intermediateImage by remember { mutableIntStateOf(currentPerson!!.image) }
                 var intermediateSurname by remember { mutableStateOf(currentPerson!!.surname) }
                 var intermediateName by remember { mutableStateOf(currentPerson!!.name) }
                 var intermediatePatronymiс by remember { mutableStateOf(currentPerson!!.patronymiс) }
@@ -555,6 +556,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             .align(Alignment.TopEnd)
                             .clickable {
                                 if (
+                                    intermediateImage != currentPerson!!.image ||
                                     intermediateSurname != currentPerson!!.surname ||
                                     intermediateName != currentPerson!!.name ||
                                     intermediatePatronymiс != currentPerson!!.patronymiс ||
@@ -578,7 +580,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Image(
-                                painter = painterResource(currentPerson!!.image!!),
+                                painter = painterResource(intermediateImage),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .size(64.dp)
@@ -610,7 +612,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                                             .clip(CircleShape)
                                                             .border(
                                                                 5.dp,
-                                                                if (el == currentPerson!!.image) {
+                                                                if (el == intermediateImage) {
                                                                     MaterialTheme.colorScheme.outline
                                                                 } else {
                                                                     Color.Transparent
@@ -618,7 +620,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                                                 CircleShape
                                                             )
                                                             .clickable {
-                                                                currentPerson!!.image = el
+                                                                intermediateImage = el
                                                                 changeAvatar = false
                                                             }
                                                     )
@@ -824,6 +826,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             Row {
                                 Button(
                                     {
+                                        currentPerson!!.image = intermediateImage
                                         currentPerson!!.surname = intermediateSurname
                                         currentPerson!!.name = intermediateName
                                         currentPerson!!.patronymiс = intermediatePatronymiс
