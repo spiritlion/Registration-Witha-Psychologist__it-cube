@@ -6,7 +6,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,12 +41,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
-import com.example.registrationwithapsychologist__itcube___newversion.RegistrationUser
+import com.example.registrationwithapsychologist__itcube___newversion.registrationUser
 import com.example.registrationwithapsychologist__itcube___newversion.avatars
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
 import com.google.firebase.Timestamp
@@ -57,8 +55,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.LocalDate
 import java.util.Calendar
 import java.util.Date
 
@@ -300,7 +296,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                             isAgree
                         ) {
                             GlobalScope.launch {
-                                RegistrationUser(
+                                registrationUser(
                                     email = mail,
                                     password = password,
                                     auth = auth,

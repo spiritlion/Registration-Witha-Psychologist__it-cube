@@ -10,11 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -29,17 +26,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
-import com.example.registrationwithapsychologist__itcube___newversion.LogUser
+import com.example.registrationwithapsychologist__itcube___newversion.logUser
 import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
-import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -124,7 +118,7 @@ fun LogScreen(navController : NavHostController, auth: FirebaseAuth, db : Fireba
             Button(
                 {
                     GlobalScope.launch {
-                        error = LogUser(mail, password, auth, users)
+                        error = logUser(mail, password, auth, users)
                     }
                     if (!error) {
                         navController.navigate(NavRoutes.Account.route)

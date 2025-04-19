@@ -240,7 +240,7 @@ sealed class NavRoutes(val route: String) {
     data object Test : NavRoutes("test")
 }
 
-suspend fun RegistrationUser(email: String, password: String, auth : FirebaseAuth, db: FirebaseFirestore, users: CollectionReference, newPerson: PersonData) {
+suspend fun registrationUser(email: String, password: String, auth : FirebaseAuth, db: FirebaseFirestore, users: CollectionReference, newPerson: PersonData) {
     auth.createUserWithEmailAndPassword(email, password)
         .await()
         .let { result -> if (result.user != null) {Log.d(TAG, "It`s ok")} else Log.w(TAG, "It`s non ok") }
@@ -270,7 +270,7 @@ suspend fun RegistrationUser(email: String, password: String, auth : FirebaseAut
         .toObject(PersonData::class.java)
 }
 
-suspend fun LogUser(email: String, password: String, auth : FirebaseAuth, users: CollectionReference) : Boolean {
+suspend fun logUser(email: String, password: String, auth : FirebaseAuth, users: CollectionReference) : Boolean {
     auth.signInWithEmailAndPassword(email, password)
         .await()
         .let { result -> if (result.user != null) {Log.d(TAG, "It`s ok")} else Log.w(TAG, "It`s non ok") }
@@ -300,8 +300,12 @@ suspend fun LogUser(email: String, password: String, auth : FirebaseAuth, users:
             .toObject(PersonData::class.java)
         return true
     } else {
-        return true
+        return false
     }
+}
+
+suspend fun recordDate(records: CollectionReference, record: Record) {
+    records.document().set(record).await()
 }
 
 fun MainActivity.isOnline(context: Context): Boolean {

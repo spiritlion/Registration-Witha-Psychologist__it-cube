@@ -1,6 +1,7 @@
 package com.example.registrationwithapsychologist__itcube.custom_composable.Interface
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -38,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -51,12 +54,17 @@ import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.R
 import com.example.registrationwithapsychologist__itcube___newversion.avatars
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
+import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.Record
 import com.example.registrationwithapsychologist__itcube___newversion.listRecords
+import com.example.registrationwithapsychologist__itcube___newversion.recordDate
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
 fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostController, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference, records: CollectionReference) {
     var isEditingMode by remember { mutableStateOf(false) }
@@ -132,30 +140,40 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                     item {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
                             Text("Дети:")
                             for (el in currentPerson?.children ?: listOf<PersonData.BabyData>()) {
-                                Row(modifier = modifier
-                                    .border(1.dp, Color.LightGray)
+                                Box(
+                                    modifier = modifier
                                     .clickable {
                                         isShowBaby = true
                                         showBaby = el
                                     }
+                                    .size(180.dp, 100.dp)
+                                    .background(
+                                        brush = Brush.linearGradient(
+                                            colors = when (el.genderIsMan) {
+                                                false -> listOf(
+                                                    Color(0xFFEF629A),
+                                                    Color(0xFFEECDA1)
+                                                )
+                                                true -> listOf(
+                                                    Color(0xFF2C67F2),
+                                                    Color(0xFF62CFF4)
+                                                )
+                                                else -> {
+                                                    listOf(Color.Gray, Color.DarkGray)
+                                                }
+                                            }
+                                        ),
+                                        shape = RoundedCornerShape(10.dp)
+                                    )
+                                    .clip(
+                                        shape = RoundedCornerShape(10.dp)
+                                    )
                                 ) {
-                                    when (el.genderIsMan) {
-                                        true -> Icon(
-                                            painter = painterResource(R.drawable.baby_boy_face),
-                                            null
-                                        )
-
-                                        false -> Icon(
-                                            painter = painterResource(R.drawable.baby_girl_face),
-                                            null
-                                        )
-
-                                        else -> {}
-                                    }
                                     Column {
                                         Text(el.surname ?: "no surname")
                                         Text(el.name ?: "no name")
@@ -169,6 +187,18 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                                 }
                                             }"
                                         )
+                                        when (el.genderIsMan) {
+                                            true -> Icon(
+                                                painter = painterResource(R.drawable.baby_boy_face),
+                                                null
+                                            )
+
+                                            false -> Icon(
+                                                painter = painterResource(R.drawable.baby_girl_face),
+                                                null
+                                            )
+                                            else -> {}
+                                        }
                                     }
                                 }
                             }
@@ -187,22 +217,61 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                     item {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
                             Text("Ваши записи:")
                             for (el in listRecords) {
-                                Card(
+                                Box(
                                     modifier = Modifier
                                         .size(180.dp, 100.dp)
+                                        .background(
+                                            brush = Brush.linearGradient(
+                                                colors = when (el.state) {
+                                                    Record.State.NotYet -> listOf(Color.LightGray, Color.Gray)
+                                                    Record.State.Сonducted -> listOf(
+                                                        Color(0xFF49C628),
+                                                        Color(0xFF70F570)
+                                                    )
+                                                    Record.State.Cancelled -> listOf(
+                                                        Color(0xFFFF3300),
+                                                        Color(0xFFFF8800)
+                                                    )
+                                                }
+                                            ),
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
+                                        .clip(
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
+                                        .padding(if (el.state == Record.State.NotYet) 0.dp else 5.dp)
                                 ) {
                                     Column(
                                         modifier = Modifier
-                                            .fillMaxSize()
+                                            .fillMaxSize(),
                                     ) {
                                         Text("${el.time.toDate().date}.${el.time.toDate().month + 1}.${el.time.toDate().year + 1900}")
                                         Text("${el.time.toDate().hours}:${el.time.toDate().minutes}${if (el.time.toDate().minutes == 0) "0" else ""}")
+                                        Text(
+                                            text = when (el.state) {
+                                                Record.State.NotYet -> "Ещё не состоялась"
+                                                Record.State.Сonducted -> "Проведена"
+                                                Record.State.Cancelled -> "Отменена"
+                                            },
+                                            fontSize = 30.sp,
+                                            color = Color(0x66FFFFFF),
+                                        )
                                     }
                                 }
+                            }
+                            Button(
+                                onClick = {
+                                    GlobalScope.launch {
+                                        recordDate(records, Record(user = auth.uid ?: ""))
+                                    }
+                                }
+                            ) {
+                                Text("Добавить...")
                             }
                         }
                     }
