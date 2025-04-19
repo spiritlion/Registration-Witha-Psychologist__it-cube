@@ -1,5 +1,6 @@
 [versions]
 agp = "8.8.0"
+datastorePreferences = "1.1.4"
 firebaseBom = "33.11.0"
 kotlin = "2.0.21"
 coreKtx = "1.10.1"
@@ -14,6 +15,7 @@ navigationCompose = "2.7.7"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 firebase-database = { module = "com.google.firebase:firebase-database" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
 google-firebase-auth = { module = "com.google.firebase:firebase-auth" }

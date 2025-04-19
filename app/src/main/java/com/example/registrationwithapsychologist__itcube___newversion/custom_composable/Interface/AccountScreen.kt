@@ -199,7 +199,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                         modifier = Modifier
                                             .fillMaxSize()
                                     ) {
-                                        Text("${el.time.toDate().day}.${el.time.toDate().month}.${el.time.toDate().year}")
+                                        Text("${el.time.toDate().date}.${el.time.toDate().month + 1}.${el.time.toDate().year + 1900}")
                                         Text("${el.time.toDate().hours}:${el.time.toDate().minutes}${if (el.time.toDate().minutes == 0) "0" else ""}")
                                     }
                                 }
