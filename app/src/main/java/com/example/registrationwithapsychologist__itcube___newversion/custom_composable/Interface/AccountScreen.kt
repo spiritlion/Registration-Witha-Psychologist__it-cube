@@ -22,7 +22,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -45,7 +44,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -55,7 +53,7 @@ import com.example.registrationwithapsychologist__itcube___newversion.R
 import com.example.registrationwithapsychologist__itcube___newversion.avatars
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.Record
-import com.example.registrationwithapsychologist__itcube___newversion.listRecords
+import com.example.registrationwithapsychologist__itcube___newversion.listRecordsWithId
 import com.example.registrationwithapsychologist__itcube___newversion.recordDate
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
@@ -63,6 +61,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
@@ -75,6 +74,9 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                 var isShowBaby by remember { mutableStateOf(false) }
                 var showBaby: PersonData.BabyData? by remember { mutableStateOf(null) }
                 var isEditingBaby by remember { mutableStateOf(false) }
+                var isShowRecord by remember { mutableStateOf(false) }
+                var showRecord: Pair<String, Record>? by remember { mutableStateOf(null) }
+                var isDeleteRecord : Boolean by remember { mutableStateOf(false) }
                 var isСhangeAccount by remember { mutableStateOf(false) }
                 Box(modifier = Modifier.fillMaxWidth()) {
                     Text(
@@ -174,28 +176,32 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                         shape = RoundedCornerShape(10.dp)
                                     )
                                 ) {
-                                    Column {
-                                        Text(el.surname ?: "no surname")
-                                        Text(el.name ?: "no name")
-                                        Text(el.patronymiс ?: "no patrynomic")
-                                        Text(
-                                            "Пол: ${
-                                                when (el.genderIsMan) {
-                                                    true -> "Мужской"
-                                                    false -> "Женский"
-                                                    else -> {}
-                                                }
-                                            }"
-                                        )
+                                    Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                        Column {
+                                            Text(el.surname ?: "no surname")
+                                            Text(el.name ?: "no name")
+                                            Text(el.patronymiс ?: "no patrynomic")
+                                            Text(
+                                                "Пол: ${
+                                                    when (el.genderIsMan) {
+                                                        true -> "Мужской"
+                                                        false -> "Женский"
+                                                        else -> {}
+                                                    }
+                                                }"
+                                            )
+                                        }
                                         when (el.genderIsMan) {
                                             true -> Icon(
                                                 painter = painterResource(R.drawable.baby_boy_face),
-                                                null
+                                                null,
+                                                tint = Color(0x66FFFFFF)
                                             )
 
                                             false -> Icon(
                                                 painter = painterResource(R.drawable.baby_girl_face),
-                                                null
+                                                null,
+                                                tint = Color(0x66FFFFFF)
                                             )
                                             else -> {}
                                         }
@@ -220,15 +226,15 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
-                            Text("Ваши записи:")
-                            for (el in listRecords) {
+                            Text("Ваши сеансы:")
+                            for (el in listRecordsWithId) {
                                 Box(
                                     modifier = Modifier
                                         .size(180.dp, 100.dp)
                                         .background(
                                             brush = Brush.linearGradient(
-                                                colors = when (el.state) {
-                                                    Record.State.NotYet -> listOf(Color.LightGray, Color.Gray)
+                                                colors = when (el.second.state) {
+                                                    Record.State.NotYet -> listOf(Color.Gray, Color.LightGray)
                                                     Record.State.Сonducted -> listOf(
                                                         Color(0xFF49C628),
                                                         Color(0xFF70F570)
@@ -244,19 +250,23 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                         .clip(
                                             shape = RoundedCornerShape(10.dp)
                                         )
-                                        .padding(if (el.state == Record.State.NotYet) 0.dp else 5.dp)
+                                        .padding(if (el.second.state == Record.State.NotYet) 0.dp else 5.dp)
+                                        .clickable {
+                                            isShowRecord = true
+                                            showRecord = el
+                                        }
                                 ) {
                                     Column(
                                         modifier = Modifier
                                             .fillMaxSize(),
                                     ) {
-                                        Text("${el.time.toDate().date}.${el.time.toDate().month + 1}.${el.time.toDate().year + 1900}")
-                                        Text("${el.time.toDate().hours}:${el.time.toDate().minutes}${if (el.time.toDate().minutes == 0) "0" else ""}")
+                                        Text("${el.second.time.toDate().date}.${el.second.time.toDate().month + 1}.${el.second.time.toDate().year + 1900}")
+                                        Text("${el.second.time.toDate().hours}:${el.second.time.toDate().minutes}${if (el.second.time.toDate().minutes == 0) "0" else ""}")
                                         Text(
-                                            text = when (el.state) {
-                                                Record.State.NotYet -> "Ещё не состоялась"
-                                                Record.State.Сonducted -> "Проведена"
-                                                Record.State.Cancelled -> "Отменена"
+                                            text = when (el.second.state) {
+                                                Record.State.NotYet -> "Ещё не состоялся"
+                                                Record.State.Сonducted -> "Проведён"
+                                                Record.State.Cancelled -> "Отменён"
                                             },
                                             fontSize = 30.sp,
                                             color = Color(0x66FFFFFF),
@@ -574,6 +584,66 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 }
                             }
                         }
+                    )
+                }
+                if (isShowRecord) {
+                    AlertDialog(
+                        title = { Text("Просмотр информации о сеансе") },
+                        text = {
+                            Column {
+                                Text(showRecord!!.first)
+                                Text("Дата: ${showRecord!!.second.time.toDate().date}.${showRecord!!.second.time.toDate().month + 1}.${showRecord!!.second.time.toDate().year + 1900}")
+                                Text("Время: ${showRecord!!.second.time.toDate().hours}:${showRecord!!.second.time.toDate().minutes}${if (showRecord!!.second.time.toDate().minutes == 0) "0" else ""}")
+                                Text("Статус: ${
+                                    when (showRecord!!.second.state) {
+                                        Record.State.NotYet -> "Ещё не состоялся"
+                                        Record.State.Сonducted -> "Проведён"
+                                        Record.State.Cancelled -> "Отменён"
+                                    }
+                                }")
+                                Text("Причина: ${showRecord!!.second.reason}")
+                                if (showRecord!!.second.state == Record.State.Cancelled)
+                                Text("Причина отмены: ${showRecord!!.second.reasonForRefusal}")
+                            }
+                        },
+                        onDismissRequest = {
+                            isShowRecord = false
+                            showRecord = null
+                        },
+                        dismissButton = { Button({ isDeleteRecord = true }, enabled = showRecord!!.second.state != Record.State.Cancelled ) { Text("Отменить") } },
+                        confirmButton = { Button({ isShowRecord = false }) { Text("Ок") } }
+                    )
+                }
+                if (isDeleteRecord) {
+                    var reason by remember { mutableStateOf("") }
+                    AlertDialog(
+                        onDismissRequest = { isDeleteRecord = false },
+                        title = { Text("Вы уверенны, что хотите отменить этот сеанс и если да, то укажите пожалуйста причину:")},
+                        text = {
+                            var reason by remember { mutableStateOf("") }
+                            TextField(
+                                value = reason,
+                                onValueChange = { reason = it },
+                                label = { Text("Причина") }
+                            )
+                        },
+                        dismissButton = { Button({ isDeleteRecord = false}) { Text("Нет") } },
+                        confirmButton = { Button({
+                            GlobalScope.launch {
+//                                isEditingBaby = false
+//                                isShowBaby = false
+//                                currentPerson!!.children!!.remove(showBaby)
+//                                users.document(auth.uid!!).set(currentPerson!!)
+//                                navController.navigate(NavRoutes.Account.route)
+                                isShowRecord = false
+                                isDeleteRecord = false
+                                showRecord!!.second.state = Record.State.Cancelled
+                                showRecord!!.second.reasonForRefusal = reason
+                                records.document(showRecord!!.first).set(showRecord!!.second)
+                            }
+                            navController.navigate(NavRoutes.Account.route)
+                        }
+                        ) { Text("Да") }  }
                     )
                 }
                 /*

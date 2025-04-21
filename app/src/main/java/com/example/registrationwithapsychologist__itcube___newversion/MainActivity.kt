@@ -37,6 +37,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -71,9 +72,10 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.Record
+import com.google.firebase.firestore.DocumentSnapshot
 
 var currentPerson : PersonData? = null
-var listRecords : MutableList<Record> = mutableListOf()
+var listRecordsWithId = mutableStateListOf<Pair<String, Record>>()
 
 val Context.dataStore by preferencesDataStore(name = "settings")
 var isTheme = mutableIntStateOf(0) // 0 - system 1 - light 2 - dark
@@ -84,6 +86,8 @@ class MainActivity : ComponentActivity() {
     var users = db.collection("users")
     var records = db.collection("records")
     private val isNonOlineBut = mutableStateOf(false)
+
+
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,10 +99,18 @@ class MainActivity : ComponentActivity() {
                         .await()
                         .toObject(PersonData::class.java)
                 }
-                listRecords = records
+                val recordsSnapshot = records
                     .get()
                     .await()
-                    .toObjects(Record::class.java)
+                listRecordsWithId.clear() // Очищаем список перед добавлением новых данных
+
+                for (document in recordsSnapshot.documents) {
+                    val record = document.toObject(Record::class.java)
+                    if (record != null) {
+                        // Добавляем пару (ID документа, объект Record) в список
+                        listRecordsWithId.add(Pair(document.id, record))
+                    }
+                }
             }
         }
         enableEdgeToEdge()
@@ -305,9 +317,52 @@ suspend fun logUser(email: String, password: String, auth : FirebaseAuth, users:
 }
 
 suspend fun recordDate(records: CollectionReference, record: Record) {
-    records.document().set(record).await()
+    records.document()
+        .set(record)
+        .await()
+}
+/*
+suspend fun findRecord(record: Record, db: FirebaseFirestore, records: CollectionReference): DocumentSnapshot? {
+    return try {
+        val querySnapshotTime = records
+            .whereEqualTo("time", record.time)
+            .get()
+            .await() // Используем корутины для асинхронного вызова
+        val querySnapshotUser = records
+            .whereEqualTo("user", record.user)
+            .get()
+            .await() // Используем корутины для асинхронного вызова
+        val querySnapshotPsychologist = records
+            .whereEqualTo("psychologist", record.psychologist)
+            .get()
+            .await() // Используем корутины для асинхронного вызова
+        val querySnapshotState = records
+            .whereEqualTo("state", record.state)
+            .get()
+            .await() // Используем корутины для асинхронного вызова
+        val querySnapshotReason = records
+            .whereEqualTo("reason", record.reason)
+            .get()
+            .await() // Используем корутины для асинхронного вызова
+        val querySnapshotReasonForRefusal = records
+            .whereEqualTo("reasonForRefusal", record.reasonForRefusal)
+            .get()
+            .await() // Используем корутины для асинхронного вызова
+        val commonElements = querySnapshotTime.documents
+            .intersect(querySnapshotUser.documents)
+            .intersect(querySnapshotPsychologist)
+        if (!querySnapshotTime.isEmpty) {
+            querySnapshotTime.documents.first() // Возвращаем первый найденный документ
+        } else {
+            null // Если документы не найдены
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null // В случае ошибки возвращаем null
+    }
 }
 
+ */
 fun MainActivity.isOnline(context: Context): Boolean {
     val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

@@ -7,7 +7,9 @@ data class Record(
     var time: Timestamp = Timestamp.now(),
     var user: String = "",
     var psychologist: String = "",
-    var state : State = State.NotYet
+    var state:  State = State.NotYet,
+    var reason: String = "",
+    var reasonForRefusal: String = ""
 ) {
     enum class State {
         NotYet,

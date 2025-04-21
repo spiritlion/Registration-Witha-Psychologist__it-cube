@@ -1,6 +1,7 @@
 package com.example.registrationwithapsychologist__itcube.custom_composable.Interface
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -223,8 +224,39 @@ fun MenuScreen(navController : NavHostController, modifier: Modifier = Modifier)
                             LazyVerticalGrid(
                                 columns = GridCells.Fixed(5)
                             ) {
-                                for (el in listOf(8, 9, 10, 11, 12, 13, 14, 15, 16, 17)) {
-                                    item {  }
+                                for (i in 1..5) {
+                                    item {
+                                        Column {
+                                            Text(
+                                                when (i) {
+                                                    1 -> "ПН"
+                                                    2 -> "ВТ"
+                                                    3 -> "СР"
+                                                    4 -> "ЧТ"
+                                                    5 -> "ПТ"
+                                                    else -> ""
+                                                }
+                                            )
+                                            for (el in listOf(
+                                                8,
+                                                9,
+                                                10,
+                                                11,
+                                                12,
+                                                13,
+                                                14,
+                                                15,
+                                                16,
+                                                17
+                                            )) {
+                                                Text(
+                                                    text = "$el:00",
+                                                    modifier = Modifier
+                                                        .clickable{}
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
