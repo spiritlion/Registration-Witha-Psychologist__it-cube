@@ -620,7 +620,6 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         onDismissRequest = { isDeleteRecord = false },
                         title = { Text("Вы уверенны, что хотите отменить этот сеанс и если да, то укажите пожалуйста причину:")},
                         text = {
-                            var reason by remember { mutableStateOf("") }
                             TextField(
                                 value = reason,
                                 onValueChange = { reason = it },

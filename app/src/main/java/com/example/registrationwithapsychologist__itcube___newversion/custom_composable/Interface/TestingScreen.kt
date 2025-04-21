@@ -4,10 +4,14 @@ import android.app.DatePickerDialog
 import android.widget.DatePicker
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,6 +32,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.DelicateCoroutinesApi
+import java.time.LocalDate
 import java.util.Calendar
 import java.util.Date
 
@@ -100,7 +105,6 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
                         mDate.value = "$mDayOfMonth/${mMonth + 1}/$mYear"
                     }, mYear, mMonth, mDay
                 )
-
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
@@ -146,6 +150,21 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
                     }
                 ) {
                     Text("Зарегистрироваться")
+                }
+            }
+            item {
+                val pagerState = rememberPagerState(pageCount = {
+                    5
+                })
+                val dayOfMonth = LocalDate.now().dayOfMonth
+                var i = 1
+                HorizontalPager(state = pagerState) { page ->
+                    Row {
+                        for (j in 1..7) {
+                            Text("$i ")
+                            i ++
+                        }
+                    }
                 }
             }
         }
