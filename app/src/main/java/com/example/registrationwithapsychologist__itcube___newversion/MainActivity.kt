@@ -232,7 +232,7 @@ fun NavBar(navController: NavHostController, auth: FirebaseAuth, db : FirebaseFi
                     composable(NavRoutes.Log.route) { LogScreen(navController = navController, auth = auth, db = db, users = users) }
 
                     composable(NavRoutes.Main.route) { MainMenuScreen(scope = scope, drawerState = drawerState) }
-                    composable(NavRoutes.Test.route) { TestingScreen(navController = navController, auth = auth, db = db, users = users) }
+                    composable(NavRoutes.Test.route) { TestingScreen(navController = navController, auth = auth, db = db, records = records) }
                 }
             }
         }
