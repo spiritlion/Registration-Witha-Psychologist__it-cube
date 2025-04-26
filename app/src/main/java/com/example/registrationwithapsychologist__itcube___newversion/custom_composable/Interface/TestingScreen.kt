@@ -43,6 +43,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalTime
 import java.util.Calendar
 import java.util.Date
 
@@ -164,29 +165,39 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
             }
             item {
                 var isOpenDialog by remember { mutableStateOf(false) }
+                var currentDay by remember { mutableStateOf(LocalDate.now()) }
+                var currentTime by remember { mutableStateOf(LocalTime.now().plusHours(1)) }
+                Text("current Date: $currentDay $currentTime")
                 Button( {isOpenDialog = true} ) { }
                 if (isOpenDialog) {
                     AlertDialog(
-                        title = { Text("Выбор даты") },
+                        title = {
+                            Text("current Date: $currentDay $currentTime") },
                         text = {
                             val pagerState = rememberPagerState(pageCount = { 5 })
-                            val currentDay = LocalDate.now()
-                            var currentMonth = LocalDate.now().month
-                            var dayOfMonth = currentDay.lengthOfMonth()
-                            var i = 1
+                            var currentMonth = currentDay.month
+                            var currentYear = currentDay.year
+                            var dayOfMonth = currentMonth.length(
+                                if (currentYear % 400 == 0) { true }
+                                else if (currentYear % 100 == 0) { false }
+                                else if (currentYear % 4 == 0) { true }
+                                else { false }
+                            )
                             HorizontalPager(state = pagerState) { page ->
+                                var i = page * 7 + 1
                                 Row(horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
                                     for (j in 1..7) {
+                                        Text(i.toString())
                                         if (i <= dayOfMonth) {
                                             Column(
                                                 modifier = Modifier
                                                     .border(
-                                                        width = if (i == currentDay.dayOfMonth) {
+                                                        width = if (i == LocalDate.now().dayOfMonth) {
                                                             1.dp
                                                         } else {
                                                             0.dp
                                                         },
-                                                        color = if (i == currentDay.dayOfMonth) {
+                                                        color = if (i == LocalDate.now().dayOfMonth) {
                                                             Color.Blue
                                                         } else {
                                                             Color.Transparent
@@ -220,25 +231,46 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
                                                         text = "$el:00",
                                                         modifier = Modifier
                                                             .clickable{
-                                                                GlobalScope.launch {
-                                                                    recordDate(
-                                                                        records,
-                                                                        Record(
-                                                                            Timestamp(Date(
-
-                                                                            ))
-                                                                        )
-                                                                    )
-                                                                }
+                                                                currentDay = LocalDate.of(
+                                                                    /* year = */ currentYear,
+                                                                    /* month = */ currentMonth,
+                                                                    /* dayOfMonth = */ i
+                                                                )
+                                                                currentTime = LocalTime.of(
+                                                                    /* hour = */ el,
+                                                                    /* minute = */ 0
+                                                                )
                                                             }
+                                                            .border(
+                                                                if (
+                                                                    currentYear == currentDay.year &&
+                                                                    currentMonth == currentDay.month &&
+                                                                    i == currentDay.dayOfMonth &&
+                                                                    el == currentTime.hour
+                                                                    ) {
+                                                                    1.dp
+                                                                } else
+                                                                    0.dp,
+
+                                                                if (
+                                                                    currentYear == currentDay.year &&
+                                                                    currentMonth == currentDay.month &&
+                                                                    el == currentDay.dayOfMonth
+                                                                ) {
+                                                                    Color.Blue
+                                                                } else {
+                                                                    Color.Transparent
+                                                                }
+                                                            )
                                                     )
                                                 }
-                                            }
+                                                }
                                             i ++
                                         } else break
                                     }
                                 }
                             }
+
                         },
                         onDismissRequest = { isOpenDialog = false },
                         confirmButton = {  }

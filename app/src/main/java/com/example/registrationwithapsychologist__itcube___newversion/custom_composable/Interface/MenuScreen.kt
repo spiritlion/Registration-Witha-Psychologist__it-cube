@@ -182,7 +182,6 @@ fun MenuScreen(navController : NavHostController, modifier: Modifier = Modifier)
                             val snackState = remember { SnackbarHostState() }
                             val snackScope = rememberCoroutineScope()
                             SnackbarHost(hostState = snackState, Modifier)
-                            // TODO demo how to read the selected date from the state.
                             val confirmEnabled = remember {
                                 derivedStateOf { datePickerState.selectedDateMillis != null }
                             }
