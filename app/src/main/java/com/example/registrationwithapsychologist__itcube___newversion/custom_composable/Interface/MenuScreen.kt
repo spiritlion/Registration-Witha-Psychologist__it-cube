@@ -1,6 +1,7 @@
 package com.example.registrationwithapsychologist__itcube.custom_composable.Interface
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,32 +11,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,11 +34,9 @@ import androidx.navigation.NavHostController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
 import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
 
-@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("MutableCollectionMutableState")
 @Composable
 fun MenuScreen(navController : NavHostController, modifier: Modifier = Modifier) {
@@ -55,19 +44,13 @@ fun MenuScreen(navController : NavHostController, modifier: Modifier = Modifier)
 
         var reason by remember { mutableStateOf("") }
 
-        val mContext = LocalContext.current
-
         // Declaring integer values
         // for year, month and day
-        val mYear: Int = LocalDate.now().year
-        val mMonth: Int = LocalDate.now().month.value
-        val mDay: Int = LocalDate.now().dayOfMonth
-        val mHour: Int = LocalTime.now().hour + 1
-        val mMinute: Int = LocalTime.now().minute
 
+        var selectedDay : LocalDate? by remember { mutableStateOf(null) }
+        var selectedTime : LocalTime? by remember { mutableStateOf(null) }
         // Declaring a string value to
         // store date in string format
-        val mDate = remember { mutableStateOf("") }
 
         // Declaring DatePickerDialog and setting
         // initial values as current values (present year, month and day)
@@ -100,12 +83,12 @@ fun MenuScreen(navController : NavHostController, modifier: Modifier = Modifier)
                 )
                 Row {
                     Text(
-                        text = "Дата: ${mDate.value} ",
+                        text = "Дата: ${if (selectedDay == null && selectedTime == null) "Дата не выбрана" else "$selectedDay $selectedTime"} ",
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
                     )
                     Button( { isShowCalendar = true } ) {
-                        Text("Выбрать дату")
+                        Text("Выбрать дату время записи")
                     }
                 }
                 Column {
@@ -165,107 +148,109 @@ fun MenuScreen(navController : NavHostController, modifier: Modifier = Modifier)
             }
         }
         if (isShowCalendar) {
+            val pagerState = rememberPagerState(pageCount = { 5 })
+            var currentMonth = selectedDay?.month ?: LocalDate.now().month
+            var currentYear = selectedDay?.year ?: LocalDate.now().year
+            var dayOfMonth = currentMonth?.length(
+                if (currentYear % 400 == 0) { true }
+                else if (currentYear % 100 == 0) { false }
+                else if (currentYear % 4 == 0) { true }
+                else { false }
+            ) ?: LocalDate.now().dayOfMonth
+//            var newSelectedDay by remember { ... }
+//            var newSelectedTime by remember { ... }
             AlertDialog(
-                onDismissRequest = { isShowCalendar = false },
-                title = { Text("Выбор даты") },
+                title = {
+                    Text("Выбор даты") },
                 text = {
-                    var dataChoose by remember { mutableStateOf(true) }
-                    Column {
-                        Text("Выбраная дата: $mDay.$mMonth.$mYear $mHour:$mMinute")
-                        Button(
-                            onClick = { dataChoose = true }
-                        ) {
-                            Text("")
-                        }
-                        val datePickerState = rememberDatePickerState()
-                        if (dataChoose) {
-                            val snackState = remember { SnackbarHostState() }
-                            val snackScope = rememberCoroutineScope()
-                            SnackbarHost(hostState = snackState, Modifier)
-                            val confirmEnabled = remember {
-                                derivedStateOf { datePickerState.selectedDateMillis != null }
-                            }
-                            DatePickerDialog(
-                                onDismissRequest = {
-                                    // Dismiss the dialog when the user clicks outside the dialog or on the back
-                                    // button. If you want to disable that functionality, simply use an empty
-                                    // onDis dataChoose= false
-                                },
-                                confirmButton = {
-                                    TextButton(
-                                        onClick = {
-                                             dataChoose= false
-                                            snackScope.launch {
-                                                snackState.showSnackbar(
-                                                    "Selected date timestamp: ${datePickerState.selectedDateMillis}"
-                                                )
-                                            }
-                                        },
-                                        enabled = confirmEnabled.value
-                                    ) {
-                                        Text("OK")
-                                    }
-                                },
-                                dismissButton = {
-                                    TextButton(onClick = { dataChoose = false }) { Text("Cancel") }
-                                }
-                            ) {
-                                // The verticalScroll will allow scrolling to show the entire month in case there is not
-                                // enough horizontal space (for example, when in landscape mode).
-                                // Note that it's still currently recommended to use a DisplayMode.Input at the state in
-                                // those cases.
-                                DatePicker(
-                                    state = datePickerState,
-                                    modifier = Modifier.verticalScroll(rememberScrollState())
-                                )
-                            }
-                        } else {
-                            LazyVerticalGrid(
-                                columns = GridCells.Fixed(5)
-                            ) {
-                                for (i in 1..5) {
-                                    item {
-                                        Column {
-                                            Text(
-                                                when (i) {
-                                                    1 -> "ПН"
-                                                    2 -> "ВТ"
-                                                    3 -> "СР"
-                                                    4 -> "ЧТ"
-                                                    5 -> "ПТ"
-                                                    else -> ""
+                    HorizontalPager(state = pagerState) { page ->
+                        // var i = page * 7 + 1
+                        Row(horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
+                            for (j in 1..5) {
+                                val i = page * 5 + j
+                                if (i <= dayOfMonth) {
+                                    Column(
+                                        modifier = Modifier
+                                            .border(
+                                                width = if (i == LocalDate.now().dayOfMonth) {
+                                                    1.dp
+                                                } else {
+                                                    0.dp
+                                                },
+                                                color = if (i == LocalDate.now().dayOfMonth) {
+                                                    Color.Blue
+                                                } else {
+                                                    Color.Transparent
                                                 }
                                             )
-                                            for (el in listOf(
-                                                8,
-                                                9,
-                                                10,
-                                                11,
-                                                12,
-                                                13,
-                                                14,
-                                                15,
-                                                16,
-                                                17
-                                            )) {
-                                                Text(
-                                                    text = "$el:00",
-                                                    modifier = Modifier
-                                                        .clickable{}
-                                                )
-                                            }
+                                    ) {
+                                        Text("$i ")
+                                        Text(when (j) {
+                                            1 -> "ПН"
+                                            2 -> "ВТ"
+                                            3 -> "СР"
+                                            4 -> "ЧТ"
+                                            5 -> "ПТ"
+//                                                    6 -> "СБ"
+//                                                    7 -> "ВС"
+                                            else -> ""
+                                        })
+                                        for (el in listOf(
+                                            8,
+                                            9,
+                                            10,
+                                            11,
+                                            12,
+                                            13,
+                                            14,
+                                            15,
+                                            16,
+                                            17
+                                        )) {
+                                            Text(
+                                                text = "$el:00",
+                                                modifier = Modifier
+                                                    .clickable{
+                                                        selectedDay = LocalDate.of(
+                                                            /* year = */ currentYear,
+                                                            /* month = */ currentMonth,
+                                                            /* dayOfMonth = */ i
+                                                        )
+                                                        selectedTime = LocalTime.of(
+                                                            /* hour = */ el,
+                                                            /* minute = */ 0
+                                                        )
+                                                    }
+                                                    .border(
+                                                        1.dp,
+                                                        if (
+                                                            currentYear == selectedDay?.year &&
+                                                            currentMonth == selectedDay?.month &&
+                                                            i == selectedDay?.dayOfMonth &&
+                                                            el == selectedTime?.hour
+                                                        ) {
+                                                            Color.Blue
+                                                        } else {
+                                                            Color.Transparent
+                                                        }
+                                                    )
+                                            )
                                         }
                                     }
-                                }
+                                    //i ++
+                                } else break
                             }
                         }
                     }
+
                 },
+                onDismissRequest = { isShowCalendar = false },
                 confirmButton = {
                     Button(
                         onClick = {
 
-                        },
+                            isShowCalendar = false
+                        }
                     ) {
                         Text("Подтвердить")
                     }

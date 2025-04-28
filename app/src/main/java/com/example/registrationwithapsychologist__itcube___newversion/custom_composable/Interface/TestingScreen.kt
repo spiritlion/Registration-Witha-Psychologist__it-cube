@@ -33,15 +33,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
-import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.Record
-import com.example.registrationwithapsychologist__itcube___newversion.recordDate
-import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.Calendar
@@ -110,12 +105,12 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
 
                 // Declaring DatePickerDialog and setting
                 // initial values as current values (present year, month and day)
-                val mDatePickerDialog = DatePickerDialog(
-                    mContext,
-                    { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
-                        mDate.value = "$mDayOfMonth/${mMonth + 1}/$mYear"
-                    }, mYear, mMonth, mDay
-                )
+//                val mDatePickerDialog = DatePickerDialog(
+//                    mContext,
+//                    { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
+//                        mDate.value = "$mDayOfMonth/${mMonth + 1}/$mYear"
+//                    }, mYear, mMonth, mDay
+//                )
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
@@ -126,7 +121,7 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
                     // click displays/shows the DatePickerDialog
                     Button(
                         onClick = {
-                            mDatePickerDialog.show()
+                           // mDatePickerDialog.show()
                         }, colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0XFF0F9D58)
                         )
@@ -165,29 +160,29 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
             }
             item {
                 var isOpenDialog by remember { mutableStateOf(false) }
-                var currentDay by remember { mutableStateOf(LocalDate.now()) }
-                var currentTime by remember { mutableStateOf(LocalTime.now().plusHours(1)) }
-                Text("current Date: $currentDay $currentTime")
-                Button( {isOpenDialog = true} ) { }
+                var selectedDay by remember { mutableStateOf(LocalDate.now()) }
+                var selectedTime by remember { mutableStateOf(LocalTime.now().plusHours(1)) }
+                Text("current Date: $selectedDay $selectedTime")
+                Button( {isOpenDialog = true} ) {  }
                 if (isOpenDialog) {
+                    val pagerState = rememberPagerState(pageCount = { 5 })
+                    var currentMonth = selectedDay.month
+                    var currentYear = selectedDay.year
+                    var dayOfMonth = currentMonth.length(
+                        if (currentYear % 400 == 0) { true }
+                        else if (currentYear % 100 == 0) { false }
+                        else if (currentYear % 4 == 0) { true }
+                        else { false }
+                    )
                     AlertDialog(
                         title = {
-                            Text("current Date: $currentDay $currentTime") },
+                            Text("current Date: $selectedDay $selectedTime") },
                         text = {
-                            val pagerState = rememberPagerState(pageCount = { 5 })
-                            var currentMonth = currentDay.month
-                            var currentYear = currentDay.year
-                            var dayOfMonth = currentMonth.length(
-                                if (currentYear % 400 == 0) { true }
-                                else if (currentYear % 100 == 0) { false }
-                                else if (currentYear % 4 == 0) { true }
-                                else { false }
-                            )
                             HorizontalPager(state = pagerState) { page ->
-                                var i = page * 7 + 1
+                               // var i = page * 7 + 1
                                 Row(horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
-                                    for (j in 1..7) {
-                                        Text(i.toString())
+                                    for (j in 1..5) {
+                                        val i = page * 5 + j
                                         if (i <= dayOfMonth) {
                                             Column(
                                                 modifier = Modifier
@@ -211,8 +206,8 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
                                                     3 -> "СР"
                                                     4 -> "ЧТ"
                                                     5 -> "ПТ"
-                                                    6 -> "СБ"
-                                                    7 -> "ВС"
+//                                                    6 -> "СБ"
+//                                                    7 -> "ВС"
                                                     else -> ""
                                                 })
                                                 for (el in listOf(
@@ -231,31 +226,23 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
                                                         text = "$el:00",
                                                         modifier = Modifier
                                                             .clickable{
-                                                                currentDay = LocalDate.of(
+                                                                selectedDay = LocalDate.of(
                                                                     /* year = */ currentYear,
                                                                     /* month = */ currentMonth,
                                                                     /* dayOfMonth = */ i
                                                                 )
-                                                                currentTime = LocalTime.of(
+                                                                selectedTime = LocalTime.of(
                                                                     /* hour = */ el,
                                                                     /* minute = */ 0
                                                                 )
                                                             }
                                                             .border(
+                                                                1.dp,
                                                                 if (
-                                                                    currentYear == currentDay.year &&
-                                                                    currentMonth == currentDay.month &&
-                                                                    i == currentDay.dayOfMonth &&
-                                                                    el == currentTime.hour
-                                                                    ) {
-                                                                    1.dp
-                                                                } else
-                                                                    0.dp,
-
-                                                                if (
-                                                                    currentYear == currentDay.year &&
-                                                                    currentMonth == currentDay.month &&
-                                                                    el == currentDay.dayOfMonth
+                                                                    currentYear == selectedDay.year &&
+                                                                    currentMonth == selectedDay.month &&
+                                                                    i == selectedDay.dayOfMonth &&
+                                                                    el == selectedTime.hour
                                                                 ) {
                                                                     Color.Blue
                                                                 } else {
@@ -264,8 +251,8 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
                                                             )
                                                     )
                                                 }
-                                                }
-                                            i ++
+                                            }
+                                            //i ++
                                         } else break
                                     }
                                 }
