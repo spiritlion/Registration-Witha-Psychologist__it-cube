@@ -16,7 +16,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -34,12 +33,27 @@ import androidx.navigation.NavHostController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
 import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
+import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.Record
+import com.example.registrationwithapsychologist__itcube___newversion.recordDate
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.CollectionReference
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.Date
 
+@OptIn(DelicateCoroutinesApi::class)
 @SuppressLint("MutableCollectionMutableState")
 @Composable
-fun MenuScreen(navController : NavHostController, modifier: Modifier = Modifier) {
+fun MenuScreen(
+    navController: NavHostController,
+    modifier: Modifier = Modifier,
+    records: CollectionReference,
+    auth: FirebaseAuth
+) {
     if (currentPerson != null) {
 
         var reason by remember { mutableStateOf("") }
@@ -59,7 +73,7 @@ fun MenuScreen(navController : NavHostController, modifier: Modifier = Modifier)
         var isIRecording by remember { mutableStateOf(false) }
         var whoFromBabyIsRecording = remember { mutableStateOf(mutableMapOf<PersonData.BabyData, Boolean>()) }
         for (el in currentPerson?.children ?: listOf<PersonData.BabyData>()) {
-            whoFromBabyIsRecording.value[el] = false
+            whoFromBabyIsRecording.value[el] = true
         }
         Row {
             Spacer(
@@ -139,7 +153,33 @@ fun MenuScreen(navController : NavHostController, modifier: Modifier = Modifier)
                     modifier = Modifier.padding(20.dp)
                 )
                 Button(
-                    onClick = {  },
+                    onClick = {
+                        var whoFromBabyIsRecordingList = mutableListOf<PersonData.BabyData>()
+                        for (el in whoFromBabyIsRecording.value) {
+                            if (el.value) whoFromBabyIsRecordingList.add(el.key)
+                        }
+                        GlobalScope.launch {
+                            recordDate(
+                                records,
+                                record = Record(
+                                    time = Timestamp(
+                                        Date(
+                                            /* year = */ selectedDay?.year ?: LocalDate.now().year,
+                                            /* month = */ selectedDay?.month?.value ?: LocalDate.now().month.value,
+                                            /* date = */ selectedDay?.dayOfMonth ?: LocalDate.now().dayOfMonth,
+                                            /* hrs = */ selectedTime?.hour ?: (LocalTime.now().hour + 1),
+                                            /* min = */ 0
+                                        )
+                                    ),
+                                    user = auth.uid ?: "",
+                                    psychologist = "",
+                                    reason = reason,
+                                    isUserRecording = isIRecording,
+                                    whoFromBabyIsRecording = whoFromBabyIsRecordingList
+                                )
+                            )
+                        }
+                    },
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                 ) {
@@ -157,11 +197,15 @@ fun MenuScreen(navController : NavHostController, modifier: Modifier = Modifier)
                 else if (currentYear % 4 == 0) { true }
                 else { false }
             ) ?: LocalDate.now().dayOfMonth
-//            var newSelectedDay by remember { ... }
-//            var newSelectedTime by remember { ... }
+            var newSelectedDay by remember { mutableStateOf(selectedDay) }
+            var newSelectedTime by remember { mutableStateOf(selectedTime) }
             AlertDialog(
                 title = {
-                    Text("Выбор даты") },
+                    Column {
+                        Text("Выбор даты")
+                        Text("Предвадительый выбор: ${if (newSelectedDay == null && newSelectedTime == null) "Дата не выбрана" else "$newSelectedDay $newSelectedTime"}", fontSize = 10.sp)
+                    }
+                        },
                 text = {
                     HorizontalPager(state = pagerState) { page ->
                         // var i = page * 7 + 1
@@ -211,12 +255,12 @@ fun MenuScreen(navController : NavHostController, modifier: Modifier = Modifier)
                                                 text = "$el:00",
                                                 modifier = Modifier
                                                     .clickable{
-                                                        selectedDay = LocalDate.of(
+                                                        newSelectedDay = LocalDate.of(
                                                             /* year = */ currentYear,
                                                             /* month = */ currentMonth,
                                                             /* dayOfMonth = */ i
                                                         )
-                                                        selectedTime = LocalTime.of(
+                                                        newSelectedTime = LocalTime.of(
                                                             /* hour = */ el,
                                                             /* minute = */ 0
                                                         )
@@ -224,10 +268,10 @@ fun MenuScreen(navController : NavHostController, modifier: Modifier = Modifier)
                                                     .border(
                                                         1.dp,
                                                         if (
-                                                            currentYear == selectedDay?.year &&
-                                                            currentMonth == selectedDay?.month &&
-                                                            i == selectedDay?.dayOfMonth &&
-                                                            el == selectedTime?.hour
+                                                            currentYear == newSelectedDay?.year &&
+                                                            currentMonth == newSelectedDay?.month &&
+                                                            i == newSelectedDay?.dayOfMonth &&
+                                                            el == newSelectedTime?.hour
                                                         ) {
                                                             Color.Blue
                                                         } else {
@@ -248,7 +292,8 @@ fun MenuScreen(navController : NavHostController, modifier: Modifier = Modifier)
                 confirmButton = {
                     Button(
                         onClick = {
-
+                            selectedDay = newSelectedDay
+                            selectedTime = newSelectedTime
                             isShowCalendar = false
                         }
                     ) {

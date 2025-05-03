@@ -1,7 +1,7 @@
 package com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts
 
+import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.auth.User
 
 data class Record(
     var time: Timestamp = Timestamp.now(),
@@ -9,7 +9,9 @@ data class Record(
     var psychologist: String = "",
     var state:  State = State.NotYet,
     var reason: String = "",
-    var reasonForRefusal: String = ""
+    var reasonForRefusal: String = "",
+    var isUserRecording: Boolean = true,
+    var whoFromBabyIsRecording: MutableList<PersonData.BabyData> = mutableListOf()
 ) {
     enum class State {
         NotYet,

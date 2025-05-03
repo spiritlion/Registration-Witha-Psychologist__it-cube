@@ -19,6 +19,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -44,24 +46,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
+import com.example.registrationwithapsychologist__itcube___newversion.Main
 import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.R
 import com.example.registrationwithapsychologist__itcube___newversion.avatars
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.Record
+import com.example.registrationwithapsychologist__itcube___newversion.listPsychologs
 import com.example.registrationwithapsychologist__itcube___newversion.listRecordsWithId
-import com.example.registrationwithapsychologist__itcube___newversion.recordDate
+import com.example.registrationwithapsychologist__itcube___newversion.listUsersWithId
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
@@ -69,581 +73,1113 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
     var isEditingMode by remember { mutableStateOf(false) }
     Column(modifier = modifier) {
         if (currentPerson != null) {
-            if (!isEditingMode) {
-                var isAddingBaby by remember { mutableStateOf(false) }
-                var isShowBaby by remember { mutableStateOf(false) }
-                var showBaby: PersonData.BabyData? by remember { mutableStateOf(null) }
-                var isEditingBaby by remember { mutableStateOf(false) }
-                var isShowRecord by remember { mutableStateOf(false) }
-                var showRecord: Pair<String, Record>? by remember { mutableStateOf(null) }
-                var isDeleteRecord : Boolean by remember { mutableStateOf(false) }
-                var isСhangeAccount by remember { mutableStateOf(false) }
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        "Профиль",
-                        modifier = Modifier
-                            .align(Alignment.Center),
-                        fontSize = 30.sp
-                    )
-                    Icon(
-                        painter = painterResource(R.drawable.edit),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .size(35.dp)
-                            .clickable { isEditingMode = true }
-                    )
+            var itIsPsycholog = false
+            listPsychologs.forEach { it ->
+                if (auth.uid == it.id) {
+                    itIsPsycholog = true
                 }
-                LazyColumn {
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Image(
-                                painter = painterResource(currentPerson!!.image),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(64.dp)
-                                    .clip(CircleShape)
-                            )
-                            Text(" ")
-                            Text(currentPerson!!.surname!!)
-                            Text(" ")
-                            Text(currentPerson!!.name!!)
-                            Text(" ")
-                            Text(currentPerson!!.patronymiс!!)
-                        }
-                    }
-                    item {
-                        Text("Дата рождения: ${currentPerson!!.birthday!!}")
-                    }
-                    item {
-                        Text("Email: ${auth.currentUser?.email}")
-                    }
-                    item {
-                        //Text("Телефон: ${currentPerson.telephoneNumber.slice(0..1)}(${currentPerson.telephoneNumber.slice(2..4)})${currentPerson.telephoneNumber.slice(5..7)}-${currentPerson.telephoneNumber.slice(8..9)}-${currentPerson.telephoneNumber.slice(10..11)}")
-                        Text("Телефон: ${currentPerson!!.telephoneNumber!!}")
-                    }
-                    item {
+            }
+            if (!isEditingMode) {
+                if (!itIsPsycholog) {
+                    var isAddingBaby by remember { mutableStateOf(false) }
+                    var isShowBaby by remember { mutableStateOf(false) }
+                    var showBaby: PersonData.BabyData? by remember { mutableStateOf(null) }
+                    var isEditingBaby by remember { mutableStateOf(false) }
+                    var isShowRecord by remember { mutableStateOf(false) }
+                    var showRecord: Pair<String, Record>? by remember { mutableStateOf(null) }
+                    var isDeleteRecord: Boolean by remember { mutableStateOf(false) }
+                    var isСhangeAccount by remember { mutableStateOf(false) }
+                    Box(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            "Пол: ${
-                                when (currentPerson!!.genderIsMan) {
-                                    true -> "Мужской"
-                                    false -> "Женский"
-                                    else -> "error"
-                                }
-                            }"
+                            "Профиль",
+                            modifier = Modifier
+                                .align(Alignment.Center),
+                            fontSize = 30.sp
+                        )
+                        Icon(
+                            painter = painterResource(R.drawable.edit),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .size(35.dp)
+                                .clickable { isEditingMode = true }
                         )
                     }
-                    item {
-                        Text("О себе: ${currentPerson?.description ?: "empty"}")
-                    }
-                    item {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(5.dp)
-                        ) {
-                            Text("Дети:")
-                            for (el in currentPerson?.children ?: listOf<PersonData.BabyData>()) {
-                                Box(
-                                    modifier = modifier
-                                    .clickable {
-                                        isShowBaby = true
-                                        showBaby = el
-                                    }
-                                    .size(180.dp, 100.dp)
-                                    .background(
-                                        brush = Brush.linearGradient(
-                                            colors = when (el.genderIsMan) {
-                                                false -> listOf(
-                                                    Color(0xFFEF629A),
-                                                    Color(0xFFEECDA1)
-                                                )
-                                                true -> listOf(
-                                                    Color(0xFF2C67F2),
-                                                    Color(0xFF62CFF4)
-                                                )
-                                                else -> {
-                                                    listOf(Color.Gray, Color.DarkGray)
-                                                }
-                                            }
-                                        ),
-                                        shape = RoundedCornerShape(10.dp)
-                                    )
-                                    .clip(
-                                        shape = RoundedCornerShape(10.dp)
-                                    )
-                                ) {
-                                    Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                        Column {
-                                            Text(el.surname ?: "no surname")
-                                            Text(el.name ?: "no name")
-                                            Text(el.patronymiс ?: "no patrynomic")
-                                            Text(
-                                                "Пол: ${
-                                                    when (el.genderIsMan) {
-                                                        true -> "Мужской"
-                                                        false -> "Женский"
-                                                        else -> {}
-                                                    }
-                                                }"
-                                            )
-                                        }
-                                        when (el.genderIsMan) {
-                                            true -> Icon(
-                                                painter = painterResource(R.drawable.baby_boy_face),
-                                                null,
-                                                tint = Color(0x66FFFFFF)
-                                            )
-
-                                            false -> Icon(
-                                                painter = painterResource(R.drawable.baby_girl_face),
-                                                null,
-                                                tint = Color(0x66FFFFFF)
-                                            )
-                                            else -> {}
-                                        }
-                                    }
-                                }
-                            }
+                    LazyColumn {
+                        item {
                             Row(
-                                modifier = Modifier.clickable { isAddingBaby = true }
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.add),
+                                Image(
+                                    painter = painterResource(currentPerson!!.image),
                                     contentDescription = null,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                                Text("Добавить нового ребёнка")
-                            }
-                        }
-                    }
-                    item {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(5.dp)
-                        ) {
-                            Text("Ваши сеансы:")
-                            for (el in listRecordsWithId) {
-                                Box(
                                     modifier = Modifier
-                                        .size(180.dp, 100.dp)
-                                        .background(
-                                            brush = Brush.linearGradient(
-                                                colors = when (el.second.state) {
-                                                    Record.State.NotYet -> listOf(Color.Gray, Color.LightGray)
-                                                    Record.State.Сonducted -> listOf(
-                                                        Color(0xFF49C628),
-                                                        Color(0xFF70F570)
-                                                    )
-                                                    Record.State.Cancelled -> listOf(
-                                                        Color(0xFFFF3300),
-                                                        Color(0xFFFF8800)
-                                                    )
-                                                }
-                                            ),
-                                            shape = RoundedCornerShape(10.dp)
-                                        )
-                                        .clip(
-                                            shape = RoundedCornerShape(10.dp)
-                                        )
-                                        .padding(if (el.second.state == Record.State.NotYet) 0.dp else 5.dp)
-                                        .clickable {
-                                            isShowRecord = true
-                                            showRecord = el
-                                        }
-                                ) {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxSize(),
-                                    ) {
-                                        Text("${el.second.time.toDate().date}.${el.second.time.toDate().month + 1}.${el.second.time.toDate().year + 1900}")
-                                        Text("${el.second.time.toDate().hours}:${el.second.time.toDate().minutes}${if (el.second.time.toDate().minutes == 0) "0" else ""}")
-                                        Text(
-                                            text = when (el.second.state) {
-                                                Record.State.NotYet -> "Ещё не состоялся"
-                                                Record.State.Сonducted -> "Проведён"
-                                                Record.State.Cancelled -> "Отменён"
-                                            },
-                                            fontSize = 30.sp,
-                                            color = Color(0x66FFFFFF),
-                                        )
-                                    }
-                                }
+                                        .size(64.dp)
+                                        .clip(CircleShape)
+                                )
+                                Text(" ")
+                                Text(currentPerson!!.surname!!)
+                                Text(" ")
+                                Text(currentPerson!!.name!!)
+                                Text(" ")
+                                Text(currentPerson!!.patronymiс!!)
                             }
-                            Button(
-                                onClick = {
-                                    GlobalScope.launch {
-                                        recordDate(records, Record(user = auth.uid ?: ""))
+                        }
+                        item {
+                            Text("Дата рождения: ${currentPerson!!.birthday!!.toDate()}")
+                        }
+                        item {
+                            Text("Email: ${auth.currentUser?.email}")
+                        }
+                        item {
+                            //Text("Телефон: ${currentPerson.telephoneNumber.slice(0..1)}(${currentPerson.telephoneNumber.slice(2..4)})${currentPerson.telephoneNumber.slice(5..7)}-${currentPerson.telephoneNumber.slice(8..9)}-${currentPerson.telephoneNumber.slice(10..11)}")
+                            Text("Телефон: ${currentPerson!!.telephoneNumber!!}")
+                        }
+                        item {
+                            Text(
+                                "Пол: ${
+                                    when (currentPerson!!.genderIsMan) {
+                                        true -> "Мужской"
+                                        false -> "Женский"
+                                        else -> "error"
                                     }
-                                }
+                                }"
+                            )
+                        }
+                        item {
+                            Text("О себе: ${currentPerson?.description ?: "empty"}")
+                        }
+                        item {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.spacedBy(5.dp)
                             ) {
-                                Text("Добавить...")
-                            }
-                        }
-                    }
-                    item {
-                        Button(
-                            onClick = { isСhangeAccount = true },
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        ) {
-                            Text("Сменить аккаунт")
-                        }
-                    }
-                }
-                if (isShowBaby) {
-                    AlertDialog(
-                        onDismissRequest = { isShowBaby = false },
-                        title = { Text(text = "Просмотр информации о ребёнке") },
-                        text = {
-                            LazyColumn {
-                                item {
-                                    Text("Имя: ${showBaby!!.name}")
-                                }
-                                item {
-                                    Text("Фамилия: ${showBaby!!.surname}")
-                                }
-                                item {
-                                    Text("Отчество: ${showBaby!!.patronymiс}")
-                                }
-                                item {
-                                    Text(
-                                        "Пол: ${
-                                            when (showBaby!!.genderIsMan) {
-                                                true -> "Мужской"
-                                                false -> "Женский"
+                                Text("Дети:")
+                                for (el in currentPerson?.children
+                                    ?: listOf<PersonData.BabyData>()) {
+                                    Box(
+                                        modifier = modifier
+                                            .clickable {
+                                                isShowBaby = true
+                                                showBaby = el
+                                            }
+                                            .size(180.dp, 100.dp)
+                                            .background(
+                                                brush = Brush.linearGradient(
+                                                    colors = when (el.genderIsMan) {
+                                                        false -> listOf(
+                                                            Color(0xFFEF629A),
+                                                            Color(0xFFEECDA1)
+                                                        )
+
+                                                        true -> listOf(
+                                                            Color(0xFF2C67F2),
+                                                            Color(0xFF62CFF4)
+                                                        )
+
+                                                        else -> {
+                                                            listOf(Color.Gray, Color.DarkGray)
+                                                        }
+                                                    }
+                                                ),
+                                                shape = RoundedCornerShape(10.dp)
+                                            )
+                                            .clip(
+                                                shape = RoundedCornerShape(10.dp)
+                                            )
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.fillMaxSize(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Column {
+                                                Text(el.surname ?: "no surname")
+                                                Text(el.name ?: "no name")
+                                                Text(el.patronymiс ?: "no patrynomic")
+                                                Text(
+                                                    "Пол: ${
+                                                        when (el.genderIsMan) {
+                                                            true -> "Мужской"
+                                                            false -> "Женский"
+                                                            else -> {}
+                                                        }
+                                                    }"
+                                                )
+                                            }
+                                            when (el.genderIsMan) {
+                                                true -> Icon(
+                                                    painter = painterResource(R.drawable.baby_boy_face),
+                                                    null,
+                                                    tint = Color(0x66FFFFFF)
+                                                )
+
+                                                false -> Icon(
+                                                    painter = painterResource(R.drawable.baby_girl_face),
+                                                    null,
+                                                    tint = Color(0x66FFFFFF)
+                                                )
+
                                                 else -> {}
                                             }
-                                        }"
+                                        }
+                                    }
+                                }
+                                Row(
+                                    modifier = Modifier.clickable { isAddingBaby = true }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.add),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(32.dp)
                                     )
-                                }
-                            }
-                        },
-                        confirmButton = {
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Button({ isShowBaby = false }) {
-                                    Text("Ок", fontSize = 22.sp)
-                                }
-                                Button({ isEditingBaby = true }) {
-                                    Text("Изменить", fontSize = 22.sp)
+                                    Text("Добавить нового ребёнка")
                                 }
                             }
                         }
-                    )
-                }
-                if (isEditingBaby) {
-                    var intermediateSurname by remember { mutableStateOf(showBaby!!.surname) }
-                    var intermediateName by remember { mutableStateOf(showBaby!!.name) }
-                    var intermediatePatronymiс by remember { mutableStateOf(showBaby!!.patronymiс) }
-                    var intermediateGender by remember { mutableStateOf(showBaby!!.genderIsMan) }
-                    AlertDialog(
-                        onDismissRequest = { isShowBaby = false },
-                        title = { Text(text = "Изменение информации о ребёнке") },
-                        text = {
-                            LazyColumn {
-                                item {
-                                    TextField(
-                                        value = intermediateName ?: "",
-                                        onValueChange = { stringParameter ->
-                                            intermediateName = stringParameter
-                                        },
-                                        placeholder = { Text("Введите ваше имя") },
-                                        label = { Text(text = "Имя") }
-                                    )
-                                }
-                                item {
-                                    TextField(
-                                        value = intermediateSurname ?: "",
-                                        onValueChange = { stringParameter ->
-                                            intermediateSurname = stringParameter
-                                        },
-                                        placeholder = { Text("Введите вашу фамилию") },
-                                        label = { Text(text = "Фамилия") }
-                                    )
-                                }
-                                item {
-                                    TextField(
-                                        value = intermediatePatronymiс ?: "",
-                                        onValueChange = { stringParameter ->
-                                            intermediatePatronymiс = stringParameter
-                                        },
-                                        placeholder = { Text("Введите ваше отчество") },
-                                        label = { Text(text = "Отчество") }
-                                    )
-                                }
-                                item {
-                                    val options = listOf(true, false)
-                                    var expanded by remember { mutableStateOf(false) }
-                                    // We want to react on tap/press on TextField to show menu
-                                    ExposedDropdownMenuBox(
-                                        expanded = expanded,
-                                        onExpandedChange = { expanded = !expanded },
-                                    ) {
-                                        TextField(
-                                            // The `menuAnchor` modifier must be passed to the text field for correctness.
-                                            modifier = Modifier.menuAnchor(),
-                                            readOnly = true,
-                                            value = when (intermediateGender) {
-                                                true -> "Мужской"
-                                                false -> "Женский"
-                                                else -> ""
-                                            },
-                                            onValueChange = {},
-                                            label = { Text("Пол") },
-                                            trailingIcon = {
-                                                ExposedDropdownMenuDefaults.TrailingIcon(
-                                                    expanded = expanded
+                        item {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.spacedBy(5.dp)
+                            ) {
+                                Text("Ваши сеансы:")
+                                for (el in listRecordsWithId) {
+                                    if (el.second.user == auth.uid) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(180.dp, 100.dp)
+                                                .background(
+                                                    brush = Brush.linearGradient(
+                                                        colors = when (el.second.state) {
+                                                            Record.State.NotYet -> listOf(
+                                                                Color.Gray,
+                                                                Color.LightGray
+                                                            )
+
+                                                            Record.State.Сonducted -> listOf(
+                                                                Color(0xFF49C628),
+                                                                Color(0xFF70F570)
+                                                            )
+
+                                                            Record.State.Cancelled -> listOf(
+                                                                Color(0xFFFF3300),
+                                                                Color(0xFFFF8800)
+                                                            )
+                                                        }
+                                                    ),
+                                                    shape = RoundedCornerShape(10.dp)
                                                 )
-                                            },
-                                            colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                                        )
-                                        ExposedDropdownMenu(
-                                            expanded = expanded,
-                                            onDismissRequest = { expanded = false },
+                                                .clip(
+                                                    shape = RoundedCornerShape(10.dp)
+                                                )
+                                                .padding(if (el.second.state == Record.State.NotYet) 0.dp else 5.dp)
+                                                .clickable {
+                                                    isShowRecord = true
+                                                    showRecord = el
+                                                }
                                         ) {
-                                            options.forEach { selectionOption ->
-                                                DropdownMenuItem(
-                                                    text = {
-                                                        Text(
-                                                            when (selectionOption) {
-                                                                true -> "Мужской"
-                                                                false -> "Женский"
-                                                            }
-                                                        )
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxSize(),
+                                            ) {
+                                                Text("${el.second.time.toDate().date}.${el.second.time.toDate().month + 1}.${el.second.time.toDate().year + 1900}")
+                                                Text("${el.second.time.toDate().hours}:${el.second.time.toDate().minutes}${if (el.second.time.toDate().minutes == 0) "0" else ""}")
+                                                Text(
+                                                    text = when (el.second.state) {
+                                                        Record.State.NotYet -> "Ещё не состоялся"
+                                                        Record.State.Сonducted -> "Проведён"
+                                                        Record.State.Cancelled -> "Отменён"
                                                     },
-                                                    onClick = {
-                                                        intermediateGender = selectionOption
-                                                        expanded = false
-                                                    },
-                                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                                    fontSize = 30.sp,
+                                                    color = Color(0x66FFFFFF),
                                                 )
                                             }
                                         }
                                     }
                                 }
                             }
-                        },
-                        confirmButton = {
-                            Column(modifier = Modifier.fillMaxWidth()) {
+                        }
+                        item {
+                            Button(
+                                onClick = { isСhangeAccount = true },
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            ) {
+                                Text("Сменить аккаунт")
+                            }
+                        }
+                    }
+                    if (isShowBaby) {
+                        AlertDialog(
+                            onDismissRequest = { isShowBaby = false },
+                            title = { Text(text = "Просмотр информации о ребёнке") },
+                            text = {
+                                LazyColumn {
+                                    item {
+                                        Text("Имя: ${showBaby!!.name}")
+                                    }
+                                    item {
+                                        Text("Фамилия: ${showBaby!!.surname}")
+                                    }
+                                    item {
+                                        Text("Отчество: ${showBaby!!.patronymiс}")
+                                    }
+                                    item {
+                                        Text(
+                                            "Пол: ${
+                                                when (showBaby!!.genderIsMan) {
+                                                    true -> "Мужской"
+                                                    false -> "Женский"
+                                                    else -> {}
+                                                }
+                                            }"
+                                        )
+                                    }
+                                }
+                            },
+                            confirmButton = {
                                 Row(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Button({ isEditingBaby = false }) {
-                                        Text("Отмена", fontSize = 22.sp)
+                                    Button({ isShowBaby = false }) {
+                                        Text("Ок", fontSize = 22.sp)
                                     }
-                                    Button({
-                                        showBaby!!.genderIsMan = intermediateGender
-                                        showBaby!!.name = intermediateName
-                                        showBaby!!.surname = intermediateSurname
-                                        showBaby!!.patronymiс = intermediatePatronymiс
-                                        users.document(auth.uid!!).set(currentPerson!!)
-                                        isShowBaby = false
-                                        isEditingBaby = false
-                                        navController.navigate(NavRoutes.Account.route)
-                                    }) {
-                                        Text("Сохранить", fontSize = 18.sp)
+                                    Button({ isEditingBaby = true }) {
+                                        Text("Изменить", fontSize = 22.sp)
                                     }
-                                }
-                                Button(
-                                    onClick = {
-                                        isEditingBaby = false
-                                        isShowBaby = false
-                                        currentPerson!!.children!!.remove(showBaby)
-                                        users.document(auth.uid!!).set(currentPerson!!)
-                                        navController.navigate(NavRoutes.Account.route)
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Red
-                                    )
-                                ) {
-                                    Text("Удалить информацию о ребёнке")
                                 }
                             }
-
-                        }
-                    )
-                }
-                if (isAddingBaby) {
-                    var intermediateBabyName by remember { mutableStateOf("") }
-                    var intermediateBabySurname by remember { mutableStateOf("") }
-                    var intermediateBabyPatronymic by remember { mutableStateOf("") }
-                    var intermediateBabyGenderIsMan by remember { mutableStateOf(true) }
-                    AlertDialog(
-                        onDismissRequest = { isAddingBaby = false },
-                        title = { Text("Добавление информации о ребёнке") },
-                        text = {
-                            LazyColumn {
-                                item {
-                                    TextField(
-                                        value = intermediateBabyName,
-                                        onValueChange = { stringParameter ->
-                                            intermediateBabyName = stringParameter
-                                        },
-                                        placeholder = { Text("Введите ваше имя") },
-                                        label = { Text(text = "Имя") }
-                                    )
-                                }
-                                item {
-                                    TextField(
-                                        value = intermediateBabySurname,
-                                        onValueChange = { stringParameter ->
-                                            intermediateBabySurname = stringParameter
-                                        },
-                                        placeholder = { Text("Введите вашу фамилию") },
-                                        label = { Text(text = "Фамилия") }
-                                    )
-                                }
-                                item {
-                                    TextField(
-                                        value = intermediateBabyPatronymic,
-                                        onValueChange = { stringParameter ->
-                                            intermediateBabyPatronymic = stringParameter
-                                        },
-                                        placeholder = { Text("Введите ваше отчество") },
-                                        label = { Text(text = "Отчество") }
-                                    )
-                                }
-                                item {
-                                    val options = listOf(true, false)
-                                    var expanded by remember { mutableStateOf(false) }
-                                    // We want to react on tap/press on TextField to show menu
-                                    ExposedDropdownMenuBox(
-                                        expanded = expanded,
-                                        onExpandedChange = { expanded = !expanded },
-                                    ) {
+                        )
+                    }
+                    if (isEditingBaby) {
+                        var intermediateSurname by remember { mutableStateOf(showBaby!!.surname) }
+                        var intermediateName by remember { mutableStateOf(showBaby!!.name) }
+                        var intermediatePatronymiс by remember { mutableStateOf(showBaby!!.patronymiс) }
+                        var intermediateGender by remember { mutableStateOf(showBaby!!.genderIsMan) }
+                        AlertDialog(
+                            onDismissRequest = { isShowBaby = false },
+                            title = { Text(text = "Изменение информации о ребёнке") },
+                            text = {
+                                LazyColumn {
+                                    item {
                                         TextField(
-                                            // The `menuAnchor` modifier must be passed to the text field for correctness.
-                                            modifier = Modifier.menuAnchor(),
-                                            readOnly = true,
-                                            value = when (intermediateBabyGenderIsMan) {
-                                                true -> "Мужской"
-                                                false -> "Женский"
+                                            value = intermediateName ?: "",
+                                            onValueChange = { stringParameter ->
+                                                intermediateName = stringParameter
                                             },
-                                            onValueChange = {},
-                                            label = { Text("Пол") },
-                                            trailingIcon = {
-                                                ExposedDropdownMenuDefaults.TrailingIcon(
-                                                    expanded = expanded
-                                                )
-                                            },
-                                            colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                                            placeholder = { Text("Введите ваше имя") },
+                                            label = { Text(text = "Имя") }
                                         )
-                                        ExposedDropdownMenu(
+                                    }
+                                    item {
+                                        TextField(
+                                            value = intermediateSurname ?: "",
+                                            onValueChange = { stringParameter ->
+                                                intermediateSurname = stringParameter
+                                            },
+                                            placeholder = { Text("Введите вашу фамилию") },
+                                            label = { Text(text = "Фамилия") }
+                                        )
+                                    }
+                                    item {
+                                        TextField(
+                                            value = intermediatePatronymiс ?: "",
+                                            onValueChange = { stringParameter ->
+                                                intermediatePatronymiс = stringParameter
+                                            },
+                                            placeholder = { Text("Введите ваше отчество") },
+                                            label = { Text(text = "Отчество") }
+                                        )
+                                    }
+                                    item {
+                                        val options = listOf(true, false)
+                                        var expanded by remember { mutableStateOf(false) }
+                                        // We want to react on tap/press on TextField to show menu
+                                        ExposedDropdownMenuBox(
                                             expanded = expanded,
-                                            onDismissRequest = { expanded = false },
+                                            onExpandedChange = { expanded = !expanded },
                                         ) {
-                                            options.forEach { selectionOption ->
-                                                DropdownMenuItem(
-                                                    text = {
-                                                        Text(
-                                                            when (selectionOption) {
-                                                                true -> "Мужской"
-                                                                false -> "Женский"
-                                                            }
-                                                        )
-                                                    },
-                                                    onClick = {
-                                                        intermediateBabyGenderIsMan =
-                                                            selectionOption
-                                                        expanded = false
-                                                    },
-                                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                                                )
+                                            TextField(
+                                                // The `menuAnchor` modifier must be passed to the text field for correctness.
+                                                modifier = Modifier.menuAnchor(),
+                                                readOnly = true,
+                                                value = when (intermediateGender) {
+                                                    true -> "Мужской"
+                                                    false -> "Женский"
+                                                    else -> ""
+                                                },
+                                                onValueChange = {},
+                                                label = { Text("Пол") },
+                                                trailingIcon = {
+                                                    ExposedDropdownMenuDefaults.TrailingIcon(
+                                                        expanded = expanded
+                                                    )
+                                                },
+                                                colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                                            )
+                                            ExposedDropdownMenu(
+                                                expanded = expanded,
+                                                onDismissRequest = { expanded = false },
+                                            ) {
+                                                options.forEach { selectionOption ->
+                                                    DropdownMenuItem(
+                                                        text = {
+                                                            Text(
+                                                                when (selectionOption) {
+                                                                    true -> "Мужской"
+                                                                    false -> "Женский"
+                                                                }
+                                                            )
+                                                        },
+                                                        onClick = {
+                                                            intermediateGender = selectionOption
+                                                            expanded = false
+                                                        },
+                                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                                    )
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-                        },
-                        confirmButton = {
-                            Row {
-                                Button({ isAddingBaby = false }) {
-                                    Text("Отмена")
-                                }
-                                Button({
-                                    currentPerson!!.children!!.add(
-                                        PersonData.BabyData(
-                                            surname = intermediateBabySurname,
-                                            name = intermediateBabyName,
-                                            patronymiс = intermediateBabyPatronymic,
-                                            genderIsMan = intermediateBabyGenderIsMan
-                                        )
-                                    )
-                                    users.document(auth.uid!!).set(currentPerson!!)
-                                    isAddingBaby = false
-                                    navController.navigate(NavRoutes.Account.route)
-                                }) {
-                                    Text("Сохранить")
-                                }
-                            }
-                        }
-                    )
-                }
-                if (isShowRecord) {
-                    AlertDialog(
-                        title = { Text("Просмотр информации о сеансе") },
-                        text = {
-                            Column {
-                                Text(showRecord!!.first)
-                                Text("Дата: ${showRecord!!.second.time.toDate().date}.${showRecord!!.second.time.toDate().month + 1}.${showRecord!!.second.time.toDate().year + 1900}")
-                                Text("Время: ${showRecord!!.second.time.toDate().hours}:${showRecord!!.second.time.toDate().minutes}${if (showRecord!!.second.time.toDate().minutes == 0) "0" else ""}")
-                                Text("Статус: ${
-                                    when (showRecord!!.second.state) {
-                                        Record.State.NotYet -> "Ещё не состоялся"
-                                        Record.State.Сonducted -> "Проведён"
-                                        Record.State.Cancelled -> "Отменён"
+                            },
+                            confirmButton = {
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Button({ isEditingBaby = false }) {
+                                            Text("Отмена", fontSize = 22.sp)
+                                        }
+                                        Button({
+                                            showBaby!!.genderIsMan = intermediateGender
+                                            showBaby!!.name = intermediateName
+                                            showBaby!!.surname = intermediateSurname
+                                            showBaby!!.patronymiс = intermediatePatronymiс
+                                            users.document(auth.uid!!).set(currentPerson!!)
+                                            isShowBaby = false
+                                            isEditingBaby = false
+                                            navController.navigate(NavRoutes.Account.route)
+                                        }) {
+                                            Text("Сохранить", fontSize = 18.sp)
+                                        }
                                     }
-                                }")
-                                Text("Причина: ${showRecord!!.second.reason}")
-                                if (showRecord!!.second.state == Record.State.Cancelled)
-                                Text("Причина отмены: ${showRecord!!.second.reasonForRefusal}")
+                                    Button(
+                                        onClick = {
+                                            isEditingBaby = false
+                                            isShowBaby = false
+                                            currentPerson!!.children!!.remove(showBaby)
+                                            users.document(auth.uid!!).set(currentPerson!!)
+                                            navController.navigate(NavRoutes.Account.route)
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color.Red
+                                        )
+                                    ) {
+                                        Text("Удалить информацию о ребёнке")
+                                    }
+                                }
+
                             }
-                        },
-                        onDismissRequest = {
-                            isShowRecord = false
-                            showRecord = null
-                        },
-                        dismissButton = { Button({ isDeleteRecord = true }, enabled = showRecord!!.second.state != Record.State.Cancelled ) { Text("Отменить") } },
-                        confirmButton = { Button({ isShowRecord = false }) { Text("Ок") } }
-                    )
-                }
-                if (isDeleteRecord) {
-                    var reason by remember { mutableStateOf("") }
-                    AlertDialog(
-                        onDismissRequest = { isDeleteRecord = false },
-                        title = { Text("Вы уверенны, что хотите отменить этот сеанс и если да, то укажите пожалуйста причину:")},
-                        text = {
-                            TextField(
-                                value = reason,
-                                onValueChange = { reason = it },
-                                label = { Text("Причина") }
-                            )
-                        },
-                        dismissButton = { Button({ isDeleteRecord = false}) { Text("Нет") } },
-                        confirmButton = { Button({
-                            GlobalScope.launch {
+                        )
+                    }
+                    if (isAddingBaby) {
+                        var intermediateBabyName by remember { mutableStateOf("") }
+                        var intermediateBabySurname by remember { mutableStateOf("") }
+                        var intermediateBabyPatronymic by remember { mutableStateOf("") }
+                        var intermediateBabyGenderIsMan by remember { mutableStateOf(true) }
+                        AlertDialog(
+                            onDismissRequest = { isAddingBaby = false },
+                            title = { Text("Добавление информации о ребёнке") },
+                            text = {
+                                LazyColumn {
+                                    item {
+                                        TextField(
+                                            value = intermediateBabyName,
+                                            onValueChange = { stringParameter ->
+                                                intermediateBabyName = stringParameter
+                                            },
+                                            placeholder = { Text("Введите ваше имя") },
+                                            label = { Text(text = "Имя") }
+                                        )
+                                    }
+                                    item {
+                                        TextField(
+                                            value = intermediateBabySurname,
+                                            onValueChange = { stringParameter ->
+                                                intermediateBabySurname = stringParameter
+                                            },
+                                            placeholder = { Text("Введите вашу фамилию") },
+                                            label = { Text(text = "Фамилия") }
+                                        )
+                                    }
+                                    item {
+                                        TextField(
+                                            value = intermediateBabyPatronymic,
+                                            onValueChange = { stringParameter ->
+                                                intermediateBabyPatronymic = stringParameter
+                                            },
+                                            placeholder = { Text("Введите ваше отчество") },
+                                            label = { Text(text = "Отчество") }
+                                        )
+                                    }
+                                    item {
+                                        val options = listOf(true, false)
+                                        var expanded by remember { mutableStateOf(false) }
+                                        // We want to react on tap/press on TextField to show menu
+                                        ExposedDropdownMenuBox(
+                                            expanded = expanded,
+                                            onExpandedChange = { expanded = !expanded },
+                                        ) {
+                                            TextField(
+                                                // The `menuAnchor` modifier must be passed to the text field for correctness.
+                                                modifier = Modifier.menuAnchor(),
+                                                readOnly = true,
+                                                value = when (intermediateBabyGenderIsMan) {
+                                                    true -> "Мужской"
+                                                    false -> "Женский"
+                                                },
+                                                onValueChange = {},
+                                                label = { Text("Пол") },
+                                                trailingIcon = {
+                                                    ExposedDropdownMenuDefaults.TrailingIcon(
+                                                        expanded = expanded
+                                                    )
+                                                },
+                                                colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                                            )
+                                            ExposedDropdownMenu(
+                                                expanded = expanded,
+                                                onDismissRequest = { expanded = false },
+                                            ) {
+                                                options.forEach { selectionOption ->
+                                                    DropdownMenuItem(
+                                                        text = {
+                                                            Text(
+                                                                when (selectionOption) {
+                                                                    true -> "Мужской"
+                                                                    false -> "Женский"
+                                                                }
+                                                            )
+                                                        },
+                                                        onClick = {
+                                                            intermediateBabyGenderIsMan =
+                                                                selectionOption
+                                                            expanded = false
+                                                        },
+                                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            confirmButton = {
+                                Row {
+                                    Button({ isAddingBaby = false }) {
+                                        Text("Отмена")
+                                    }
+                                    Button({
+                                        currentPerson!!.children!!.add(
+                                            PersonData.BabyData(
+                                                surname = intermediateBabySurname,
+                                                name = intermediateBabyName,
+                                                patronymiс = intermediateBabyPatronymic,
+                                                genderIsMan = intermediateBabyGenderIsMan
+                                            )
+                                        )
+                                        users.document(auth.uid!!).set(currentPerson!!)
+                                        isAddingBaby = false
+                                        navController.navigate(NavRoutes.Account.route)
+                                    }) {
+                                        Text("Сохранить")
+                                    }
+                                }
+                            }
+                        )
+                    }
+                    if (isShowRecord) {
+                        AlertDialog(
+                            title = { Text("Просмотр информации о сеансе") },
+                            text = {
+                                Column {
+                                    Text(showRecord!!.first)
+                                    Text("Дата: ${showRecord!!.second.time.toDate().date}.${showRecord!!.second.time.toDate().month + 1}.${showRecord!!.second.time.toDate().year + 1900}")
+                                    Text("Время: ${showRecord!!.second.time.toDate().hours}:${showRecord!!.second.time.toDate().minutes}${if (showRecord!!.second.time.toDate().minutes == 0) "0" else ""}")
+                                    Text(
+                                        "Статус: ${
+                                            when (showRecord!!.second.state) {
+                                                Record.State.NotYet -> "Ещё не состоялся"
+                                                Record.State.Сonducted -> "Проведён"
+                                                Record.State.Cancelled -> "Отменён"
+                                            }
+                                        }"
+                                    )
+                                    Text("Причина: ${showRecord!!.second.reason}")
+                                    Text("Кто записался:")
+                                    if (showRecord!!.second.isUserRecording) Text("• ${currentPerson?.surname} ${currentPerson?.name} ${currentPerson?.patronymiс} (Вы)")
+                                    for (el in showRecord!!.second.whoFromBabyIsRecording) {
+                                        Text("• ${el.surname} ${el.name} ${el.patronymiс}")
+                                    }
+                                    if (showRecord!!.second.state == Record.State.Cancelled) Text("Причина отмены: ${showRecord!!.second.reasonForRefusal}")
+                                }
+                            },
+                            onDismissRequest = {
+                                isShowRecord = false
+                                showRecord = null
+                            },
+                            dismissButton = {
+                                Button(
+                                    { isDeleteRecord = true },
+                                    enabled = showRecord!!.second.state != Record.State.Cancelled
+                                ) { Text("Отменить") }
+                            },
+                            confirmButton = { Button({ isShowRecord = false }) { Text("Ок") } }
+                        )
+                    }
+                    if (isDeleteRecord) {
+                        var reason by remember { mutableStateOf("") }
+                        AlertDialog(
+                            onDismissRequest = { isDeleteRecord = false },
+                            title = { Text("Вы уверенны, что хотите отменить этот сеанс и если да, то укажите пожалуйста причину:") },
+                            text = {
+                                TextField(
+                                    value = reason,
+                                    onValueChange = { reason = it },
+                                    label = { Text("Причина") }
+                                )
+                            },
+                            dismissButton = { Button({ isDeleteRecord = false }) { Text("Нет") } },
+                            confirmButton = {
+                                Button({
+                                    GlobalScope.launch {
 //                                isEditingBaby = false
 //                                isShowBaby = false
 //                                currentPerson!!.children!!.remove(showBaby)
 //                                users.document(auth.uid!!).set(currentPerson!!)
 //                                navController.navigate(NavRoutes.Account.route)
-                                isShowRecord = false
-                                isDeleteRecord = false
-                                showRecord!!.second.state = Record.State.Cancelled
-                                showRecord!!.second.reasonForRefusal = reason
-                                records.document(showRecord!!.first).set(showRecord!!.second)
+                                        isShowRecord = false
+                                        isDeleteRecord = false
+                                        showRecord!!.second.state = Record.State.Cancelled
+                                        showRecord!!.second.reasonForRefusal = reason
+                                        records.document(showRecord!!.first)
+                                            .set(showRecord!!.second)
+                                    }
+                                    navController.navigate(NavRoutes.Account.route)
+                                }
+                                ) { Text("Да") }
                             }
-                            navController.navigate(NavRoutes.Account.route)
+                        )
+                    }
+                } else {
+                    var mode by remember { mutableIntStateOf(1) }
+                    var isShowRecord by remember { mutableStateOf(false) }
+                    var showRecord: Pair<String, Record>? by remember { mutableStateOf(null) }
+                    var isShowUser by remember { mutableStateOf(false) }
+                    var showUser: Pair<String, PersonData>? by remember { mutableStateOf(null) }
+                    var isShowBaby by remember { mutableStateOf(false) }
+                    var showBaby: PersonData.BabyData? by remember { mutableStateOf(null) }
+                    var isDeleteRecord: Boolean by remember { mutableStateOf(false) }
+                    Text("Добро пожаловать, ${currentPerson?.surname} ${currentPerson?.name} ${currentPerson?.patronymiс}")
+                    Row(horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "Записи",
+                            modifier = Modifier.clickable { mode = 1 },
+                            textDecoration = if (mode == 1) {
+                                TextDecoration.Underline
+                            } else {
+                                TextDecoration.None
+                            }
+                        )
+                        Text(
+                            text = "Пользователи",
+                            modifier = Modifier.clickable { mode = 2 },
+                            textDecoration = if (mode == 2) {
+                                TextDecoration.Underline
+                            } else {
+                                TextDecoration.None
+                            }
+                        )
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
+                        when (mode) {
+                            1 -> {
+                                var search by remember { mutableStateOf("") }
+                                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically ) {
+                                    TextField(
+                                        value = search,
+                                        onValueChange = { search = it },
+                                        label = { Text("Поиск") }
+                                    )
+                                    Icon(
+                                        Icons.Filled.Search,
+                                        "Search",
+                                        modifier = Modifier
+                                            .clickable{
+
+                                            }
+                                    )
+                                }
+                                listRecordsWithId.forEach { it ->
+                                    Box(
+                                        modifier = Modifier
+                                            .size(180.dp, 100.dp)
+                                            .background(
+                                                brush = Brush.linearGradient(
+                                                    colors = when (it.second.state) {
+                                                        Record.State.NotYet -> listOf(
+                                                            Color.Gray,
+                                                            Color.LightGray
+                                                        )
+
+                                                        Record.State.Сonducted -> listOf(
+                                                            Color(0xFF49C628),
+                                                            Color(0xFF70F570)
+                                                        )
+
+                                                        Record.State.Cancelled -> listOf(
+                                                            Color(0xFFFF3300),
+                                                            Color(0xFFFF8800)
+                                                        )
+                                                    }
+                                                ),
+                                                shape = RoundedCornerShape(10.dp)
+                                            )
+                                            .clip(
+                                                shape = RoundedCornerShape(10.dp)
+                                            )
+                                            .padding(if (it.second.state == Record.State.NotYet) 0.dp else 5.dp)
+                                            .clickable {
+                                                isShowRecord = true
+                                                showRecord = it
+                                            }
+                                    ) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxSize(),
+                                        ) {
+                                            Text("${it.second.time.toDate().date}.${it.second.time.toDate().month + 1}.${it.second.time.toDate().year + 1900}")
+                                            Text("${it.second.time.toDate().hours}:${it.second.time.toDate().minutes}${if (it.second.time.toDate().minutes == 0) "0" else ""}")
+                                            Text(
+                                                text = when (it.second.state) {
+                                                    Record.State.NotYet -> "Ещё не состоялся"
+                                                    Record.State.Сonducted -> "Проведён"
+                                                    Record.State.Cancelled -> "Отменён"
+                                                },
+                                                fontSize = 30.sp,
+                                                color = Color(0x66FFFFFF),
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            2 -> {
+                                var search by remember { mutableStateOf("") }
+                                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically ) {
+                                    TextField(
+                                        value = search,
+                                        onValueChange = { search = it },
+                                        label = { Text("Поиск") }
+                                    )
+                                    Icon(
+                                        Icons.Filled.Search,
+                                        "Search",
+                                        modifier = Modifier
+                                            .clickable{
+
+                                            }
+                                    )
+                                }
+                                listUsersWithId.forEach { it ->
+                                    Box(
+                                        modifier = modifier
+                                            .clickable {
+                                                isShowUser = true
+                                                showUser = it
+                                            }
+                                            .size(180.dp, 100.dp)
+                                            .background(
+                                                brush = Brush.linearGradient(
+                                                    colors = when (it.second.genderIsMan) {
+                                                        false -> listOf(
+                                                            Color(0xFFEF629A),
+                                                            Color(0xFFEECDA1)
+                                                        )
+
+                                                        true -> listOf(
+                                                            Color(0xFF2C67F2),
+                                                            Color(0xFF62CFF4)
+                                                        )
+
+                                                        else -> {
+                                                            listOf(Color.Gray, Color.DarkGray)
+                                                        }
+                                                    }
+                                                ),
+                                                shape = RoundedCornerShape(10.dp)
+                                            )
+                                            .clip(
+                                                shape = RoundedCornerShape(10.dp)
+                                            )
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.fillMaxSize(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Column {
+                                                Text(it.second.surname ?: "no surname")
+                                                Text(it.second.name ?: "no name")
+                                                Text(it.second.patronymiс ?: "no patrynomic")
+                                                Text(
+                                                    "Пол: ${
+                                                        when (it.second.genderIsMan) {
+                                                            true -> "Мужской"
+                                                            false -> "Женский"
+                                                            else -> {}
+                                                        }
+                                                    }"
+                                                )
+                                            }
+//                                            when (it.genderIsMan) {
+//                                                true -> Icon(
+//                                                    painter = painterResource(R.drawable.baby_boy_face),
+//                                                    null,
+//                                                    tint = Color(0x66FFFFFF)
+//                                                )
+//
+//                                                false -> Icon(
+//                                                    painter = painterResource(R.drawable.baby_girl_face),
+//                                                    null,
+//                                                    tint = Color(0x66FFFFFF)
+//                                                )
+//
+//                                                else -> {}
+//                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
-                        ) { Text("Да") }  }
-                    )
+                    }
+                    if (isShowRecord) {
+                        AlertDialog(
+                            title = { Text("Просмотр информации о сеансе") },
+                            text = {
+                                Column {
+                                    Text(showRecord!!.first)
+                                    Text("Дата: ${showRecord!!.second.time.toDate().date}.${showRecord!!.second.time.toDate().month + 1}.${showRecord!!.second.time.toDate().year + 1900}")
+                                    Text("Время: ${showRecord!!.second.time.toDate().hours}:${showRecord!!.second.time.toDate().minutes}${if (showRecord!!.second.time.toDate().minutes == 0) "0" else ""}")
+                                    Text(
+                                        "Статус: ${
+                                            when (showRecord!!.second.state) {
+                                                Record.State.NotYet -> "Ещё не состоялся"
+                                                Record.State.Сonducted -> "Проведён"
+                                                Record.State.Cancelled -> "Отменён"
+                                            }
+                                        }"
+                                    )
+                                    Text("Причина: ${showRecord!!.second.reason}")
+                                    Text("Кто записался:")
+                                    if (showRecord!!.second.isUserRecording) Text("• ${currentPerson?.surname} ${currentPerson?.name} ${currentPerson?.patronymiс} (Пользователь)")
+                                    for (el in showRecord!!.second.whoFromBabyIsRecording) {
+                                        Text("• ${el.surname} ${el.name} ${el.patronymiс}")
+                                    }
+                                    if (showRecord!!.second.state == Record.State.Cancelled) Text("Причина отмены: ${showRecord!!.second.reasonForRefusal}")
+                                }
+                            },
+                            onDismissRequest = {
+                                isShowRecord = false
+                                showRecord = null
+                            },
+                            dismissButton = {
+                                Button(
+                                    { isDeleteRecord = true },
+                                    enabled = showRecord!!.second.state != Record.State.Cancelled
+                                ) { Text("Отменить") }
+                            },
+                            confirmButton = { Button({ isShowRecord = false }) { Text("Ок") } }
+                        )
+                    }
+                    if (isDeleteRecord) {
+                        var reason by remember { mutableStateOf("") }
+                        AlertDialog(
+                            onDismissRequest = { isDeleteRecord = false },
+                            title = { Text("Вы уверенны, что хотите отменить этот сеанс и если да, то укажите пожалуйста причину:") },
+                            text = {
+                                TextField(
+                                    value = reason,
+                                    onValueChange = { reason = it },
+                                    label = { Text("Причина") }
+                                )
+                            },
+                            dismissButton = { Button({ isDeleteRecord = false }) { Text("Нет") } },
+                            confirmButton = {
+                                Button({
+                                    GlobalScope.launch {
+//                                isEditingBaby = false
+//                                isShowBaby = false
+//                                currentPerson!!.children!!.remove(showBaby)
+//                                users.document(auth.uid!!).set(currentPerson!!)
+//                                navController.navigate(NavRoutes.Account.route)
+                                        isShowRecord = false
+                                        isDeleteRecord = false
+                                        showRecord!!.second.state = Record.State.Cancelled
+                                        showRecord!!.second.reasonForRefusal = reason
+                                        records.document(showRecord!!.first)
+                                            .set(showRecord!!.second)
+                                    }
+                                    navController.navigate(NavRoutes.Account.route)
+                                }
+                                ) { Text("Да") }
+                            }
+                        )
+                    }
+                    if (isShowUser) {
+                        AlertDialog(
+                            title = { Text("Простмотр информации о человеке") },
+                            text = {
+                                LazyColumn {
+                                    item {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Image(
+                                                painter = painterResource(showUser!!.second.image),
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .size(64.dp)
+                                                    .clip(CircleShape)
+                                            )
+                                            Text(" ")
+                                            Text(showUser!!.second.surname!!)
+                                            Text(" ")
+                                            Text(showUser!!.second.name!!)
+                                            Text(" ")
+                                            Text(showUser!!.second.patronymiс!!)
+                                        }
+                                    }
+                                    item {
+                                        Text("Дата рождения: ${showUser!!.second.birthday!!.toDate()}")
+                                    }
+                                    item {
+                                        Text("Email: ${auth.currentUser?.email}")
+                                    }
+                                    item {
+                                        //Text("Телефон: ${showUser.telephoneNumber.slice(0..1)}(${showUser.telephoneNumber.slice(2..4)})${showUser.telephoneNumber.slice(5..7)}-${showUser.telephoneNumber.slice(8..9)}-${showUser.telephoneNumber.slice(10..11)}")
+                                        Text("Телефон: ${showUser!!.second.telephoneNumber!!}")
+                                    }
+                                    item {
+                                        Text(
+                                            "Пол: ${
+                                                when (showUser!!.second.genderIsMan) {
+                                                    true -> "Мужской"
+                                                    false -> "Женский"
+                                                    else -> "error"
+                                                }
+                                            }"
+                                        )
+                                    }
+                                    item {
+                                        Text("О себе: ${showUser?.second?.description ?: "empty"}")
+                                    }
+                                    item {
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            modifier = Modifier.fillMaxSize(),
+                                            verticalArrangement = Arrangement.spacedBy(5.dp)
+                                        ) {
+                                            Text("Дети пользователя:")
+                                            for (el in showUser?.second?.children
+                                                ?: listOf<PersonData.BabyData>()) {
+                                                Box(
+                                                    modifier = modifier
+                                                        .clickable {
+                                                            isShowBaby = true
+                                                            showBaby = el
+                                                        }
+                                                        .size(180.dp, 100.dp)
+                                                        .background(
+                                                            brush = Brush.linearGradient(
+                                                                colors = when (el.genderIsMan) {
+                                                                    false -> listOf(
+                                                                        Color(0xFFEF629A),
+                                                                        Color(0xFFEECDA1)
+                                                                    )
+
+                                                                    true -> listOf(
+                                                                        Color(0xFF2C67F2),
+                                                                        Color(0xFF62CFF4)
+                                                                    )
+
+                                                                    else -> {
+                                                                        listOf(Color.Gray, Color.DarkGray)
+                                                                    }
+                                                                }
+                                                            ),
+                                                            shape = RoundedCornerShape(10.dp)
+                                                        )
+                                                        .clip(
+                                                            shape = RoundedCornerShape(10.dp)
+                                                        )
+                                                ) {
+                                                    Row(
+                                                        modifier = Modifier.fillMaxSize(),
+                                                        horizontalArrangement = Arrangement.SpaceBetween
+                                                    ) {
+                                                        Column {
+                                                            Text(el.surname ?: "no surname")
+                                                            Text(el.name ?: "no name")
+                                                            Text(el.patronymiс ?: "no patrynomic")
+                                                            Text(
+                                                                "Пол: ${
+                                                                    when (el.genderIsMan) {
+                                                                        true -> "Мужской"
+                                                                        false -> "Женский"
+                                                                        else -> {}
+                                                                    }
+                                                                }"
+                                                            )
+                                                        }
+                                                        when (el.genderIsMan) {
+                                                            true -> Icon(
+                                                                painter = painterResource(R.drawable.baby_boy_face),
+                                                                null,
+                                                                tint = Color(0x66FFFFFF)
+                                                            )
+
+                                                            false -> Icon(
+                                                                painter = painterResource(R.drawable.baby_girl_face),
+                                                                null,
+                                                                tint = Color(0x66FFFFFF)
+                                                            )
+
+                                                            else -> {}
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    item {
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            modifier = Modifier.fillMaxSize(),
+                                            verticalArrangement = Arrangement.spacedBy(5.dp)
+                                        ) {
+                                            Text("Сеансы пользователя:")
+                                            for (el in listRecordsWithId) {
+                                                if (el.second.user == showUser!!.first) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(180.dp, 100.dp)
+                                                            .background(
+                                                                brush = Brush.linearGradient(
+                                                                    colors = when (el.second.state) {
+                                                                        Record.State.NotYet -> listOf(
+                                                                            Color.Gray,
+                                                                            Color.LightGray
+                                                                        )
+
+                                                                        Record.State.Сonducted -> listOf(
+                                                                            Color(0xFF49C628),
+                                                                            Color(0xFF70F570)
+                                                                        )
+
+                                                                        Record.State.Cancelled -> listOf(
+                                                                            Color(0xFFFF3300),
+                                                                            Color(0xFFFF8800)
+                                                                        )
+                                                                    }
+                                                                ),
+                                                                shape = RoundedCornerShape(10.dp)
+                                                            )
+                                                            .clip(
+                                                                shape = RoundedCornerShape(10.dp)
+                                                            )
+                                                            .padding(if (el.second.state == Record.State.NotYet) 0.dp else 5.dp)
+                                                            .clickable {
+                                                                isShowRecord = true
+                                                                showRecord = el
+                                                            }
+                                                    ) {
+                                                        Column(
+                                                            modifier = Modifier
+                                                                .fillMaxSize(),
+                                                        ) {
+                                                            Text("${el.second.time.toDate().date}.${el.second.time.toDate().month + 1}.${el.second.time.toDate().year + 1900}")
+                                                            Text("${el.second.time.toDate().hours}:${el.second.time.toDate().minutes}${if (el.second.time.toDate().minutes == 0) "0" else ""}")
+                                                            Text(
+                                                                text = when (el.second.state) {
+                                                                    Record.State.NotYet -> "Ещё не состоялся"
+                                                                    Record.State.Сonducted -> "Проведён"
+                                                                    Record.State.Cancelled -> "Отменён"
+                                                                },
+                                                                fontSize = 30.sp,
+                                                                color = Color(0x66FFFFFF),
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            onDismissRequest = { isShowUser = false },
+                            confirmButton = {
+                                Button(
+                                    onClick = { isShowUser = false }
+                                ) {
+                                    Text("Ок")
+                                }
+                            }
+                        )
+                    }
+                    if (isShowBaby) {
+                        AlertDialog(
+                            onDismissRequest = { isShowBaby = false },
+                            title = { Text(text = "Просмотр информации о ребёнке") },
+                            text = {
+                                LazyColumn {
+                                    item {
+                                        Text("Имя: ${showBaby!!.name}")
+                                    }
+                                    item {
+                                        Text("Фамилия: ${showBaby!!.surname}")
+                                    }
+                                    item {
+                                        Text("Отчество: ${showBaby!!.patronymiс}")
+                                    }
+                                    item {
+                                        Text(
+                                            "Пол: ${
+                                                when (showBaby!!.genderIsMan) {
+                                                    true -> "Мужской"
+                                                    false -> "Женский"
+                                                    else -> {}
+                                                }
+                                            }"
+                                        )
+                                    }
+                                }
+                            },
+                            confirmButton = {
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Button({ isShowBaby = false }) {
+                                        Text("Ок", fontSize = 22.sp)
+                                    }
+                                }
+                            }
+                        )
+                    }
                 }
                 /*
                 if (isСhangeAccount) {

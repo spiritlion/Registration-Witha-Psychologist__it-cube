@@ -72,10 +72,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.Record
-import com.google.firebase.firestore.DocumentSnapshot
+import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.PsycgologData
 
 var currentPerson : PersonData? = null
+var listUsersWithId = mutableStateListOf<Pair<String, PersonData>>()
 var listRecordsWithId = mutableStateListOf<Pair<String, Record>>()
+var listPsychologs = mutableStateListOf<PsycgologData>()
 
 val Context.dataStore by preferencesDataStore(name = "settings")
 var isTheme = mutableIntStateOf(0) // 0 - system 1 - light 2 - dark
@@ -85,8 +87,8 @@ class MainActivity : ComponentActivity() {
     var db = Firebase.firestore
     var users = db.collection("users")
     var records = db.collection("records")
+    var psychologs = db.collection("psychologs")
     private val isNonOlineBut = mutableStateOf(false)
-
 
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,16 +101,36 @@ class MainActivity : ComponentActivity() {
                         .await()
                         .toObject(PersonData::class.java)
                 }
+                val userSnapshot = users
+                    .get()
+                    .await()
+                listUsersWithId.clear()
+                for (document in userSnapshot.documents) {
+                    val user = document.toObject(PersonData::class.java)
+                    if (user != null) {
+                        listUsersWithId.add(Pair(document.id, user))
+                    }
+                }
                 val recordsSnapshot = records
                     .get()
                     .await()
                 listRecordsWithId.clear() // Очищаем список перед добавлением новых данных
-
                 for (document in recordsSnapshot.documents) {
                     val record = document.toObject(Record::class.java)
                     if (record != null) {
                         // Добавляем пару (ID документа, объект Record) в список
                         listRecordsWithId.add(Pair(document.id, record))
+                    }
+                }
+
+                val psychologsSnapshot = psychologs
+                    .get()
+                    .await()
+                listPsychologs.clear()
+                for (document in psychologsSnapshot.documents) {
+                    val psycgolog = document.toObject(PsycgologData::class.java)
+                    if (psycgolog != null) {
+                        listPsychologs.add(psycgolog)
                     }
                 }
             }
@@ -224,7 +246,11 @@ fun NavBar(navController: NavHostController, auth: FirebaseAuth, db : FirebaseFi
                 }
                 NavHost(navController, startDestination = NavRoutes.Main.route) {
                     composable(NavRoutes.Info.route) { InfoScreen() }
-                    composable(NavRoutes.Schedule.route) { MenuScreen(navController) }
+                    composable(NavRoutes.Schedule.route) { MenuScreen(
+                        navController,
+                        records = records,
+                        auth = auth
+                    ) }
                     composable(NavRoutes.Account.route) { AccountScreen(navController = navController, auth = auth, db = db, users = users, records = records) }
                     composable(NavRoutes.Setting.route) { SettingsScreen(repository = repository) }
 
