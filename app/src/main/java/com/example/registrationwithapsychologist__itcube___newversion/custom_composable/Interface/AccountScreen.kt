@@ -74,13 +74,14 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
     Column(modifier = modifier) {
         if (currentPerson != null) {
             var itIsPsycholog = false
-            listPsychologs.forEach { it ->
+            listPsychologs.forEach {
                 if (auth.uid == it.id) {
                     itIsPsycholog = true
                 }
             }
             if (!isEditingMode) {
                 if (!itIsPsycholog) {
+                    // region аккаунт пользователя
                     var isAddingBaby by remember { mutableStateOf(false) }
                     var isShowBaby by remember { mutableStateOf(false) }
                     var showBaby: PersonData.BabyData? by remember { mutableStateOf(null) }
@@ -625,7 +626,14 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                     for (el in showRecord!!.second.whoFromBabyIsRecording) {
                                         Text("• ${el.surname} ${el.name} ${el.patronymiс}")
                                     }
-                                    if (showRecord!!.second.state == Record.State.Cancelled) Text("Причина отмены: ${showRecord!!.second.reasonForRefusal}")
+                                    if (showRecord!!.second.state == Record.State.Cancelled) {
+                                        Text("Кто отменил: ${when (showRecord!!.second.whoCanceled) {
+                                            1 -> "пользователь"
+                                            2 -> "психолог"
+                                            else -> "error"
+                                        }}")
+                                        Text("Причина отмены: ${showRecord!!.second.reasonForRefusal}")
+                                    }
                                 }
                             },
                             onDismissRequest = {
@@ -665,6 +673,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                         isShowRecord = false
                                         isDeleteRecord = false
                                         showRecord!!.second.state = Record.State.Cancelled
+                                        showRecord!!.second.whoCanceled = 1
                                         showRecord!!.second.reasonForRefusal = reason
                                         records.document(showRecord!!.first)
                                             .set(showRecord!!.second)
@@ -675,7 +684,9 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             }
                         )
                     }
+                    // endregion
                 } else {
+                    // region аккаунт психолога
                     var mode by remember { mutableIntStateOf(1) }
                     var isShowRecord by remember { mutableStateOf(false) }
                     var showRecord: Pair<String, Record>? by remember { mutableStateOf(null) }
@@ -928,6 +939,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                         isShowRecord = false
                                         isDeleteRecord = false
                                         showRecord!!.second.state = Record.State.Cancelled
+                                        showRecord!!.second.whoCanceled = 2
                                         showRecord!!.second.reasonForRefusal = reason
                                         records.document(showRecord!!.first)
                                             .set(showRecord!!.second)
@@ -1180,6 +1192,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             }
                         )
                     }
+                    // endregion
                 }
                 /*
                 if (isСhangeAccount) {
@@ -1237,6 +1250,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                 }
                 */
             } else {
+                // region Editing Mode
                 var isSave by remember { mutableStateOf(false) }
                 var intermediateImage by remember { mutableIntStateOf(currentPerson!!.image) }
                 var intermediateSurname by remember { mutableStateOf(currentPerson!!.surname) }
@@ -1557,8 +1571,10 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         }
                     )
                 }
+                // endregion
             }
         } else {
+            // region Нет Сети
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
                 Text("Что-бы просматривать информацию об аккаунте, необходимо войти или зарегистроваться:", textAlign = TextAlign.Center)
                 Spacer(modifier = Modifier.padding(10.dp))
@@ -1577,6 +1593,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                     Text("Зарегистрироваться")
                 }
             }
+            // endregion
         }
     }
 }
