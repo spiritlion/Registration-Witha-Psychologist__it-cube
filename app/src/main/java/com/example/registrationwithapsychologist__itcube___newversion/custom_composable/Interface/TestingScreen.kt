@@ -5,19 +5,23 @@ import android.widget.DatePicker
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,6 +43,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.DelicateCoroutinesApi
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 
@@ -81,36 +86,8 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
              */
             }
             item {
-                val mContext = LocalContext.current
 
-                // Declaring integer values
-                // for year, month and day
-                val mYear: Int
-                val mMonth: Int
-                val mDay: Int
 
-                // Initializing a Calendar
-                val mCalendar = Calendar.getInstance()
-
-                // Fetching current year, month and day
-                mYear = mCalendar.get(Calendar.YEAR)
-                mMonth = mCalendar.get(Calendar.MONTH)
-                mDay = mCalendar.get(Calendar.DAY_OF_MONTH)
-
-                mCalendar.time = Date()
-
-                // Declaring a string value to
-                // store date in string format
-                val mDate = remember { mutableStateOf("") }
-
-                // Declaring DatePickerDialog and setting
-                // initial values as current values (present year, month and day)
-//                val mDatePickerDialog = DatePickerDialog(
-//                    mContext,
-//                    { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
-//                        mDate.value = "$mDayOfMonth/${mMonth + 1}/$mYear"
-//                    }, mYear, mMonth, mDay
-//                )
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
@@ -121,7 +98,6 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
                     // click displays/shows the DatePickerDialog
                     Button(
                         onClick = {
-                           // mDatePickerDialog.show()
                         }, colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0XFF0F9D58)
                         )
@@ -134,7 +110,7 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
 
                     // Displaying the mDate value in the Text
                     Text(
-                        text = "Selected Date: ${mDate.value}",
+                        text = "Selected Date: ",
                         fontSize = 30.sp,
                         textAlign = TextAlign.Center
                     )
@@ -264,6 +240,49 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
                     )
                 }
             }
+            item {
+                CalendarView()
+            }
+            item {
+                val currentDate = LocalDate.now()
+                var currentMonth by remember { mutableStateOf(currentDate.monthValue) }
+                var currentYear by remember { mutableStateOf(currentDate.year) }
+                val daysInMonth = LocalDate.of(currentYear, currentMonth, 1).lengthOfMonth()
+                val firstDayOfWeek = LocalDate.of(currentYear, currentMonth, 1).dayOfWeek.value % 7 // Пн=0, Вт=1, ..., Вс=6
+                val pagerState = rememberPagerState(pageCount = {(daysInMonth + firstDayOfWeek + 6) / 7})
+                HorizontalPager(
+                    state = pagerState
+                ) { page ->
+                    Column {
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            for (day in 0 until 7) {
+                                val dayIndex = page * 7 + day - firstDayOfWeek
+                                if (dayIndex in 1..daysInMonth) {
+                                    val isToday = dayIndex == currentDate.dayOfMonth && currentMonth == currentDate.monthValue && currentYear == currentDate.year
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .border(
+                                                width = if (isToday) 2.dp else 0.dp,
+                                                color = if (isToday) Color.Blue else Color.Transparent
+                                            )
+                                            .padding(8.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = dayIndex.toString(),
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                } else {
+                                    Spacer(modifier = Modifier.weight(1f)) // Пустое пространство для дней вне месяца
+                                }
+                            }
+                        }
+                        // Здесь можно добавить дополнительные элементы, такие как время и т.д.
+                    }
+                }
+            }
         }
     }
 }
@@ -330,3 +349,84 @@ fun CustomCalendar() {
 }
 
  */
+
+@Composable
+fun CalendarView() {
+    var currentMonth by remember { mutableStateOf(LocalDate.now()) }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
+    ) {
+        // Заголовок с месяцем и навигацией
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BasicText(text = currentMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy")))
+            Row {
+                Text(
+                    text = "<",
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .clickable{ currentMonth = currentMonth.minusMonths(1) }
+                )
+                Text(
+                    text = ">",
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .clickable{ currentMonth = currentMonth.plusMonths(1) }
+                )
+            }
+        }
+
+        // Дни недели
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            val daysOfWeek = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+            for (day in daysOfWeek) {
+                BasicText(text = day)
+            }
+        }
+
+        // Дни месяца
+        val firstDayOfMonth = currentMonth.withDayOfMonth(1)
+        val lastDayOfMonth = currentMonth.withDayOfMonth(currentMonth.lengthOfMonth())
+
+        // Смещение для первого дня месяца
+        val startOffset = firstDayOfMonth.dayOfWeek.value % 7
+
+        // Создаем сетку дней месяца
+        Column {
+            var dayCounter = 1
+
+            for (week in 0..5) { // максимум 6 недель в месяце
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    for (day in 0..6) {
+                        if (week == 0 && day < startOffset) {
+                            // Пустые ячейки до первого дня месяца
+                            Spacer(modifier = Modifier.weight(1f))
+                        } else if (dayCounter <= lastDayOfMonth.dayOfMonth) {
+                            BasicText(
+                                text = dayCounter.toString(),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(8.dp),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            dayCounter++
+                        } else {
+                            // Пустые ячейки после последнего дня месяца
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
