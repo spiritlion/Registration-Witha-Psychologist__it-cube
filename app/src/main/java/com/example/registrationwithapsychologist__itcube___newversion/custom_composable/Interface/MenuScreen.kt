@@ -18,7 +18,10 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -27,6 +30,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -188,8 +192,8 @@ fun MenuScreen(
                                 record = Record(
                                     time = Timestamp(
                                         Date(
-                                            /* year = */ selectedDay?.year ?: LocalDate.now().year,
-                                            /* month = */ selectedDay?.month?.value ?: LocalDate.now().month.value,
+                                            /* year = */ (selectedDay?.year?.minus(1900)) ?: (LocalDate.now().year - 1900),
+                                            /* month = */ (selectedDay?.month?.value?.minus(1)) ?: LocalDate.now().month.value,
                                             /* date = */ selectedDay?.dayOfMonth ?: LocalDate.now().dayOfMonth,
                                             /* hrs = */ selectedTime?.hour ?: (LocalTime.now().hour + 1),
                                             /* min = */ 0
@@ -238,15 +242,41 @@ fun MenuScreen(
                         },
                 text = {
                     Column {
-                        Icon(
-                            Icons.Filled.DateRange,
-                            null,
-                            modifier = Modifier
-                                .clickable{
-                                    showDataPickerDialog = true
+                        Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                            Column {
+                                Icon(
+                                    Icons.Filled.DateRange,
+                                    null,
+                                    modifier = Modifier
+                                        .clickable{
+                                            showDataPickerDialog = true
+                                        }
+                                )
+                                Text("$currentYear ${currentMonth.name}")
+                            }
+                            Row {
+                                IconButton(
+                                    onClick = {
+                                        currentMonth + 1
+                                    }
+                                ) {
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                        null
+                                    )
                                 }
-                        )
-                        Text("$currentYear ${currentMonth.name}")
+                                IconButton(
+                                    onClick = {
+                                        currentMonth - 1
+                                    }
+                                ) {
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                        null
+                                    )
+                                }
+                            }
+                        }
                         HorizontalPager(
                                 state = pagerState
                                 ) { page ->
@@ -348,8 +378,8 @@ fun MenuScreen(
                                 TextButton(
                                     onClick = {
                                         var date = Date(datePickerState.selectedDateMillis!!)
-                                        currentYear = date.year
-                                        currentMonth = LocalDate.of(0, date.month, 1).month
+                                        currentYear = date.year + 1900
+                                        currentMonth = LocalDate.of(0, date.month + 1, 1).month
                                         showDataPickerDialog = false
                                     },
                                     enabled = confirmEnabled.value
