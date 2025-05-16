@@ -281,26 +281,11 @@ sealed class NavRoutes(val route: String) {
 suspend fun registrationUser(email: String, password: String, auth : FirebaseAuth, db: FirebaseFirestore, users: CollectionReference, newPerson: PersonData) {
     auth.createUserWithEmailAndPassword(email, password)
         .await()
-        .let { result -> if (result.user != null) {Log.d(TAG, "It`s ok")} else Log.w(TAG, "It`s non ok") }
-    /*
-        .addOnCompleteListener(this) { task ->
-            if (task.isSuccessful) {
-                // Sign in success, update UI with the signed-in user's information
-                Log.d(TAG, "createUserWithEmail:success")
-                val user = auth.currentUser
-                //updateUI(user)
-            } else {
-                // If sign in fails, display a message to the user.
-                Log.w(TAG, "createUserWithEmail:failure", task.exception)
-                Toast.makeText(
-                    baseContext,
-                    "Authentication failed.",
-                    Toast.LENGTH_SHORT,
-                ).show()
-                //updateUI(null)
-            }
+        .let { result ->
+            if (result.user != null) {
+                Log.d(TAG, "It`s ok")
+            } else Log.w(TAG, "It`s non ok")
         }
-     */
     users.document(auth.uid!!).set(newPerson)
     currentPerson = users.document(auth.uid!!)
         .get()
@@ -311,26 +296,11 @@ suspend fun registrationUser(email: String, password: String, auth : FirebaseAut
 suspend fun logUser(email: String, password: String, auth : FirebaseAuth, users: CollectionReference) : Boolean {
     auth.signInWithEmailAndPassword(email, password)
         .await()
-        .let { result -> if (result.user != null) {Log.d(TAG, "It`s ok")} else Log.w(TAG, "It`s non ok") }
-    /*
-        .addOnCompleteListener(this) { task ->
-            if (task.isSuccessful) {
-                // Sign in success, update UI with the signed-in user's information
-                Log.d(TAG, "signInWithEmail:success")
-                val user = auth.currentUser
-                updateUI(user)
-            } else {
-                // If sign in fails, display a message to the user.
-                Log.w(TAG, "signInWithEmail:failure", task.exception)
-                Toast.makeText(
-                    baseContext,
-                    "Authentication failed.",
-                    Toast.LENGTH_SHORT,
-                ).show()
-                updateUI(null)
-            }
+        .let { result ->
+            if (result.user != null) {
+                Log.d(TAG, "It`s ok")
+            } else Log.w(TAG, "It`s non ok")
         }
-     */
     if (auth.currentUser != null){
         currentPerson = users.document(auth.uid!!)
             .get()

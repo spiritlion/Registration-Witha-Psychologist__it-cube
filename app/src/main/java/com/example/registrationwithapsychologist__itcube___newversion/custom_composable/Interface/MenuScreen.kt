@@ -40,10 +40,12 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -58,6 +60,7 @@ import com.example.registrationwithapsychologist__itcube___newversion.MainActivi
 import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.Record
+import com.example.registrationwithapsychologist__itcube___newversion.listRecordsWithId
 import com.example.registrationwithapsychologist__itcube___newversion.recordDate
 import com.google.android.play.core.integrity.d
 import com.google.firebase.Firebase
@@ -216,8 +219,8 @@ fun MenuScreen(
             }
         }
         if (isShowCalendar) {
-            var currentMonth = selectedDay?.month ?: LocalDate.now().month
-            var currentYear = selectedDay?.year ?: LocalDate.now().year
+            var currentMonth by remember { mutableStateOf(selectedDay?.month ?: LocalDate.now().month) }
+            var currentYear by remember { mutableStateOf(selectedDay?.year ?: LocalDate.now().year) }
             var dayOfMonth = currentMonth?.length(
                 if (currentYear % 400 == 0) { true }
                 else if (currentYear % 100 == 0) { false }
@@ -257,7 +260,10 @@ fun MenuScreen(
                             Row {
                                 IconButton(
                                     onClick = {
-                                        currentMonth + 1
+                                        if (currentMonth.value == 1) {
+                                            currentMonth += 11
+                                            currentYear -= 1
+                                        } else currentMonth -= 1
                                     }
                                 ) {
                                     Icon(
@@ -267,7 +273,10 @@ fun MenuScreen(
                                 }
                                 IconButton(
                                     onClick = {
-                                        currentMonth - 1
+                                        if (currentMonth.value == 12) {
+                                            currentMonth -= 11
+                                            currentYear += 1
+                                        } else currentMonth += 1
                                     }
                                 ) {
                                     Icon(
@@ -323,6 +332,32 @@ fun MenuScreen(
                                                     16,
                                                     17
                                                 )) {
+                                                    /**
+                                                     *  0 - не занята;
+                                                     *  1 - не доступна;
+                                                     *  2 - занята кем-то другим;
+                                                     *  3 - занята этим пользователем;
+                                                     */
+                                                    var labelStatus by remember { mutableIntStateOf(
+                                                        { list:  SnapshotStateList<Pair<String, Record>> ->
+                                                            if (
+                                                                LocalDate.of(currentYear, currentMonth, dayIndex) < LocalDate.now()
+                                                            ) 1
+                                                            else {
+                                                            list.forEach {
+                                                                if (
+                                                                    currentYear == it.second.time.toDate().year &&
+                                                                    currentMonth.value == (it.second.time.toDate().month + 1) &&
+                                                                    dayIndex == it.second.time.toDate().date
+                                                                ) {
+                                                                    if (it.second.user == auth.uid) 3
+                                                                    else 2
+                                                                }
+                                                            }
+                                                            0
+                                                                }
+                                                        }(listRecordsWithId)
+                                                    ) }
                                                     Text(
                                                         text = "$el:00",
                                                         modifier = Modifier
@@ -336,25 +371,28 @@ fun MenuScreen(
                                                                     /* hour = */ el,
                                                                     /* minute = */ 0
                                                                 )
+                                                            },
+                                                        color = if (
+                                                            currentYear == newSelectedDay?.year &&
+                                                            currentMonth == newSelectedDay?.month &&
+                                                            dayIndex == newSelectedDay?.dayOfMonth &&
+                                                            el == newSelectedTime?.hour
+                                                        ) {
+                                                            Color.Blue
+                                                        } else {
+                                                            when (labelStatus) {
+                                                                0 -> Color.Unspecified
+                                                                1 -> Color.Gray
+                                                                2 -> Color.Red
+                                                                3 -> Color.Green
+                                                                else -> Color.Unspecified
                                                             }
-                                                            .border(
-                                                                1.dp,
-                                                                if (
-                                                                    currentYear == newSelectedDay?.year &&
-                                                                    currentMonth == newSelectedDay?.month &&
-                                                                    dayIndex == newSelectedDay?.dayOfMonth &&
-                                                                    el == newSelectedTime?.hour
-                                                                ) {
-                                                                    Color.Blue
-                                                                } else {
-                                                                    Color.Transparent
-                                                                }
-                                                            )
+                                                        }
                                                     )
                                                 }
-                                            } else {
-                                                Spacer(modifier = Modifier.weight(1f)) // Пустое пространство для дней вне месяца
-                                            }
+                                            } // else {
+//                                                Spacer(modifier = Modifier.weight(1f)) // Пустое пространство для дней вне месяца
+//                                            }
                                         }
                                     }
                                 }
