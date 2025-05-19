@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -44,14 +45,19 @@ fun LogScreen(navController : NavHostController, auth: FirebaseAuth, db : Fireba
     var telephone by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    var error by remember { mutableStateOf(false) }
+    var success : Boolean? by remember { mutableStateOf(null) }
     LazyColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxSize()
     ) {
         item {
-            Text(if (error) "Неверный логин или пароль" else "", color = Color.Red)
+            if (success == true) {
+                CircularProgressIndicator()
+            }
+        }
+        item {
+            Text(if (success == false) "Неверный логин или пароль" else "", color = Color.Red)
         }
         item {
             Text("Вход", fontSize = 20.sp)
@@ -89,7 +95,7 @@ fun LogScreen(navController : NavHostController, auth: FirebaseAuth, db : Fireba
                         onValueChange = { mail = it },
                         placeholder = { Text("Введите вашу электронную почту") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        isError = error
+                        isError = success == false
                     )
                 }
                 "telephone" -> {
@@ -99,7 +105,7 @@ fun LogScreen(navController : NavHostController, auth: FirebaseAuth, db : Fireba
                         onValueChange = { telephone = it },
                         placeholder = { Text("Введите ваш номер телефона") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                        isError = error
+                        isError = success == false
                     )
                 }
             }
@@ -110,7 +116,8 @@ fun LogScreen(navController : NavHostController, auth: FirebaseAuth, db : Fireba
                 value = password,
                 onValueChange = { password = it },
                 placeholder = { Text("Введите ваш пароль") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                isError = success == false
             )
         }
         item {
@@ -118,14 +125,14 @@ fun LogScreen(navController : NavHostController, auth: FirebaseAuth, db : Fireba
             Button(
                 {
                     GlobalScope.launch {
-                        error = logUser(mail, password, auth, users)
-                    }
-                    if (!error) {
-                        navController.navigate(NavRoutes.Account.route)
+                        success = logUser(mail, password, auth, users)
                     }
                 }
             ) {
                 Text("Войти")
+            }
+            if (success == true) {
+                navController.navigate(NavRoutes.Account.route)
             }
         }
     }

@@ -1,7 +1,6 @@
 package com.example.registrationwithapsychologist__itcube.custom_composable.Interface
 
 import android.annotation.SuppressLint
-import android.widget.DatePicker
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,18 +20,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -43,32 +38,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
-import com.example.registrationwithapsychologist__itcube___newversion.MainActivity
 import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.Record
 import com.example.registrationwithapsychologist__itcube___newversion.listRecordsWithId
 import com.example.registrationwithapsychologist__itcube___newversion.recordDate
-import com.google.android.play.core.integrity.d
-import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
 import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -102,9 +88,9 @@ fun MenuScreen(
         var isShowCalendar by remember { mutableStateOf(false) }
 
         var isIRecording by remember { mutableStateOf(false) }
-        var whoFromBabyIsRecording = remember { mutableStateOf(mutableMapOf<PersonData.BabyData, Boolean>()) }
-        for (el in currentPerson?.children ?: listOf<PersonData.BabyData>()) {
-            whoFromBabyIsRecording.value[el] = true
+        var whoFromBabyIsRecording by remember { mutableStateOf(mutableMapOf<PersonData.BabyData, Boolean>()) } // Ребёнка записать = добавить его i в спец. список
+        for (el in currentPerson?.children ?: listOf()) {
+            whoFromBabyIsRecording[el] = true
         }
         Row {
             Spacer(
@@ -154,18 +140,18 @@ fun MenuScreen(
                                     .width(50.dp)
                             )
                         }
-                        for (el in whoFromBabyIsRecording.value) {
+                        for (el in whoFromBabyIsRecording) {
                             Row(modifier = Modifier.fillMaxWidth()) {
                                 Text("${el.key.surname} ${el.key.name} ${el.key.patronymiс}", modifier = Modifier.weight(1f))
                                 Checkbox(
                                     checked = el.value,
                                     onCheckedChange = {
                                         val intermediate : MutableMap<PersonData. BabyData, Boolean> = mutableMapOf()
-                                        for (el in whoFromBabyIsRecording.value) {
-                                            intermediate[el.key] = el.value
+                                        for (i in whoFromBabyIsRecording) {
+                                            intermediate[i.key] = i.value
                                         }// пройтись циклом
                                         intermediate[el.key] = it
-                                        whoFromBabyIsRecording = mutableStateOf(intermediate)
+                                        whoFromBabyIsRecording = intermediate
                                     },
                                     modifier = Modifier
                                         .width(50.dp)
@@ -186,7 +172,7 @@ fun MenuScreen(
                 Button(
                     onClick = {
                         var whoFromBabyIsRecordingList = mutableListOf<PersonData.BabyData>()
-                        for (el in whoFromBabyIsRecording.value) {
+                        for (el in whoFromBabyIsRecording) {
                             if (el.value) whoFromBabyIsRecordingList.add(el.key)
                         }
                         GlobalScope.launch {
@@ -240,7 +226,7 @@ fun MenuScreen(
                 title = {
                     Column {
                         Text("Выбор даты")
-                        Text("Предвадительый выбор: ${if (newSelectedDay == null && newSelectedTime == null) "Дата не выбрана" else "$newSelectedDay $newSelectedTime"}", fontSize = 10.sp)
+                        Text("Предвадительный выбор: ${if (newSelectedDay == null && newSelectedTime == null) "Дата не выбрана" else "$newSelectedDay $newSelectedTime"}", fontSize = 10.sp)
                     }
                         },
                 text = {
@@ -338,25 +324,36 @@ fun MenuScreen(
                                                      *  2 - занята кем-то другим;
                                                      *  3 - занята этим пользователем;
                                                      */
-                                                    var labelStatus by remember { mutableIntStateOf(
-                                                        { list:  SnapshotStateList<Pair<String, Record>> ->
-                                                            if (
-                                                                LocalDate.of(currentYear, currentMonth, dayIndex) < LocalDate.now()
-                                                            ) 1
-                                                            else {
-                                                            list.forEach {
+                                                    val labelStatus by remember { mutableIntStateOf(
+                                                        if (
+                                                            LocalDate.of(
+                                                                currentYear,
+                                                                currentMonth,
+                                                                dayIndex
+                                                            ) < LocalDate.now()
+                                                        ) 1
+                                                        else {
+                                                            /**
+                                                             * Исправить в следующем году
+                                                             **/
+                                                            /*
+                                                            listRecordsWithId.forEach {
                                                                 if (
-                                                                    currentYear == it.second.time.toDate().year &&
-                                                                    currentMonth.value == (it.second.time.toDate().month + 1) &&
+                                                                    currentYear == it.second.time.toDate().year.plus(
+                                                                        1900
+                                                                    ) &&
+                                                                    currentMonth.value == it.second.time.toDate().month.plus(
+                                                                        1
+                                                                    ) &&
                                                                     dayIndex == it.second.time.toDate().date
                                                                 ) {
                                                                     if (it.second.user == auth.uid) 3
                                                                     else 2
                                                                 }
                                                             }
+                                                             */
                                                             0
-                                                                }
-                                                        }(listRecordsWithId)
+                                                        }
                                                     ) }
                                                     Text(
                                                         text = "$el:00",

@@ -294,20 +294,27 @@ suspend fun registrationUser(email: String, password: String, auth : FirebaseAut
 }
 
 suspend fun logUser(email: String, password: String, auth : FirebaseAuth, users: CollectionReference) : Boolean {
-    auth.signInWithEmailAndPassword(email, password)
-        .await()
-        .let { result ->
-            if (result.user != null) {
-                Log.d(TAG, "It`s ok")
-            } else Log.w(TAG, "It`s non ok")
-        }
-    if (auth.currentUser != null){
-        currentPerson = users.document(auth.uid!!)
-            .get()
+    try {
+        auth.signInWithEmailAndPassword(email, password)
             .await()
-            .toObject(PersonData::class.java)
-        return true
-    } else {
+            .let { result ->
+                if (result.user != null) {
+                    Log.d(TAG, "It`s ok")
+                } else Log.w(TAG, "It`s non ok")
+            }
+        return auth.uid?.let { uid ->
+            if (auth.currentUser != null){
+                currentPerson = users.document(uid)
+                    .get()
+                    .await()
+                    .toObject(PersonData::class.java)
+                return true
+            } else {
+                return false
+            }
+        } ?: false
+    }
+    catch(e:Throwable) {
         return false
     }
 }
@@ -359,7 +366,7 @@ suspend fun findRecord(record: Record, db: FirebaseFirestore, records: Collectio
 }
 
  */
-fun MainActivity.isOnline(context: Context): Boolean {
+fun isOnline(context: Context): Boolean {
     val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     val capabilities =
