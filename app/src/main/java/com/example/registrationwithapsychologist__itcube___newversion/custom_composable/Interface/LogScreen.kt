@@ -28,8 +28,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.registrationwithapsychologist__itcube___newversion.logUser
 import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
+import com.example.registrationwithapsychologist__itcube___newversion.logUserWithEmail
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -125,7 +125,7 @@ fun LogScreen(navController : NavHostController, auth: FirebaseAuth, db : Fireba
             Button(
                 {
                     GlobalScope.launch {
-                        success = logUser(mail, password, auth, users)
+                        success = logUserWithEmail(mail, password, auth, users)
                     }
                 }
             ) {

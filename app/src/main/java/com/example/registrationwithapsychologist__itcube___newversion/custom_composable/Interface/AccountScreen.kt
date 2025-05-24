@@ -24,12 +24,14 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -57,9 +59,11 @@ import com.example.registrationwithapsychologist__itcube___newversion.R
 import com.example.registrationwithapsychologist__itcube___newversion.avatars
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.Record
+import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.LogScreen
 import com.example.registrationwithapsychologist__itcube___newversion.listPsychologs
 import com.example.registrationwithapsychologist__itcube___newversion.listRecordsWithId
 import com.example.registrationwithapsychologist__itcube___newversion.listUsersWithId
+import com.example.registrationwithapsychologist__itcube___newversion.loggedInAccounts
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -72,7 +76,9 @@ import kotlinx.coroutines.launch
 fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostController, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference, records: CollectionReference) {
     var isEditingMode by remember { mutableStateOf(false) }
     Column(modifier = modifier) {
-        if (currentPerson != null) {
+        currentPerson?.let { person ->
+            val snackbarHostState = remember { SnackbarHostState() }
+
             var itIsPsycholog = false
             listPsychologs.forEach {
                 if (auth.uid == it.id) {
@@ -113,34 +119,34 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Image(
-                                    painter = painterResource(currentPerson!!.image),
+                                    painter = painterResource(loggedInAccounts[person].image),
                                     contentDescription = null,
                                     modifier = Modifier
                                         .size(64.dp)
                                         .clip(CircleShape)
                                 )
                                 Text(" ")
-                                Text(currentPerson!!.surname!!)
+                                Text(loggedInAccounts[person].surname!!)
                                 Text(" ")
-                                Text(currentPerson!!.name!!)
+                                Text(loggedInAccounts[person].name!!)
                                 Text(" ")
-                                Text(currentPerson!!.patronymiс!!)
+                                Text(loggedInAccounts[person].patronymiс!!)
                             }
                         }
                         item {
-                            Text("Дата рождения: ${currentPerson!!.birthday!!.toDate()}")
+                            Text("Дата рождения: ${loggedInAccounts[person].birthday!!.toDate()}")
                         }
                         item {
                             Text("Email: ${auth.currentUser?.email}")
                         }
                         item {
-                            //Text("Телефон: ${currentPerson.telephoneNumber.slice(0..1)}(${currentPerson.telephoneNumber.slice(2..4)})${currentPerson.telephoneNumber.slice(5..7)}-${currentPerson.telephoneNumber.slice(8..9)}-${currentPerson.telephoneNumber.slice(10..11)}")
-                            Text("Телефон: ${currentPerson!!.telephoneNumber!!}")
+                            //Text("Телефон: ${loggedInAccounts[person].telephoneNumber.slice(0..1)}(${loggedInAccounts[person].telephoneNumber.slice(2..4)})${loggedInAccounts[person].telephoneNumber.slice(5..7)}-${loggedInAccounts[person].telephoneNumber.slice(8..9)}-${loggedInAccounts[person].telephoneNumber.slice(10..11)}")
+                            Text("Телефон: ${loggedInAccounts[person].telephoneNumber!!}")
                         }
                         item {
                             Text(
                                 "Пол: ${
-                                    when (currentPerson!!.genderIsMan) {
+                                    when (loggedInAccounts[person].genderIsMan) {
                                         true -> "Мужской"
                                         false -> "Женский"
                                         else -> "error"
@@ -149,7 +155,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             )
                         }
                         item {
-                            Text("О себе: ${currentPerson?.description ?: "empty"}")
+                            Text("О себе: ${loggedInAccounts[person].description ?: "empty"}")
                         }
                         item {
                             Column(
@@ -158,7 +164,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 verticalArrangement = Arrangement.spacedBy(5.dp)
                             ) {
                                 Text("Дети:")
-                                for (el in currentPerson?.children
+                                for (el in loggedInAccounts[person].children
                                     ?: listOf<PersonData.BabyData>()) {
                                     Box(
                                         modifier = modifier
@@ -460,7 +466,8 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                             showBaby!!.name = intermediateName
                                             showBaby!!.surname = intermediateSurname
                                             showBaby!!.patronymiс = intermediatePatronymiс
-                                            users.document(auth.uid!!).set(currentPerson!!)
+                                            users.document(auth.uid!!)
+                                                .set(loggedInAccounts[person]!!)
                                             isShowBaby = false
                                             isEditingBaby = false
                                             navController.navigate(NavRoutes.Account.route)
@@ -472,8 +479,11 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                         onClick = {
                                             isEditingBaby = false
                                             isShowBaby = false
-                                            currentPerson!!.children!!.remove(showBaby)
-                                            users.document(auth.uid!!).set(currentPerson!!)
+                                            loggedInAccounts[person]!!.children!!.remove(
+                                                showBaby
+                                            )
+                                            users.document(auth.uid!!)
+                                                .set(loggedInAccounts[person]!!)
                                             navController.navigate(NavRoutes.Account.route)
                                         },
                                         colors = ButtonDefaults.buttonColors(
@@ -585,7 +595,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                         Text("Отмена")
                                     }
                                     Button({
-                                        currentPerson!!.children!!.add(
+                                        loggedInAccounts[person]!!.children!!.add(
                                             PersonData.BabyData(
                                                 surname = intermediateBabySurname,
                                                 name = intermediateBabyName,
@@ -593,7 +603,8 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                                 genderIsMan = intermediateBabyGenderIsMan
                                             )
                                         )
-                                        users.document(auth.uid!!).set(currentPerson!!)
+                                        users.document(auth.uid!!)
+                                            .set(loggedInAccounts[person]!!)
                                         isAddingBaby = false
                                         navController.navigate(NavRoutes.Account.route)
                                     }) {
@@ -622,16 +633,20 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                     )
                                     Text("Причина: ${showRecord!!.second.reason}")
                                     Text("Кто записался:")
-                                    if (showRecord!!.second.isUserRecording) Text("• ${currentPerson?.surname} ${currentPerson?.name} ${currentPerson?.patronymiс} (Вы)")
+                                    if (showRecord!!.second.isUserRecording) Text("• ${loggedInAccounts[person]?.surname} ${loggedInAccounts[person]?.name} ${loggedInAccounts[person]?.patronymiс} (Вы)")
                                     for (el in showRecord!!.second.whoFromBabyIsRecording) {
-                                        Text("• ${el.surname} ${el.name} ${el.patronymiс}")
+                                        loggedInAccounts[person].children?.get(el)?.let { Text("• ${it.surname} ${it.name} ${it.patronymiс}") }
                                     }
                                     if (showRecord!!.second.state == Record.State.Cancelled) {
-                                        Text("Кто отменил: ${when (showRecord!!.second.whoCanceled) {
-                                            1 -> "пользователь"
-                                            2 -> "психолог"
-                                            else -> "error"
-                                        }}")
+                                        Text(
+                                            "Кто отменил: ${
+                                                when (showRecord!!.second.whoCanceled) {
+                                                    1 -> "пользователь"
+                                                    2 -> "психолог"
+                                                    else -> "error"
+                                                }
+                                            }"
+                                        )
                                         Text("Причина отмены: ${showRecord!!.second.reasonForRefusal}")
                                     }
                                 }
@@ -667,8 +682,8 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                     GlobalScope.launch {
 //                                isEditingBaby = false
 //                                isShowBaby = false
-//                                currentPerson!!.children!!.remove(showBaby)
-//                                users.document(auth.uid!!).set(currentPerson!!)
+//                                loggedInAccounts[person]!!.children!!.remove(showBaby)
+//                                users.document(auth.uid!!).set(loggedInAccounts[person]!!)
 //                                navController.navigate(NavRoutes.Account.route)
                                         isShowRecord = false
                                         isDeleteRecord = false
@@ -684,6 +699,107 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             }
                         )
                     }
+                    if (isСhangeAccount) {
+                        AlertDialog(
+                            title = { Text("Смена аккаунта") },
+                            text = {
+                                LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    item {
+                                        Row(horizontalArrangement = Arrangement.SpaceEvenly) {
+                                            Button(
+                                                onClick = { navController.navigate(NavRoutes.Log.route) }
+                                            ) {
+                                                Text("Войти в аккаунт")
+                                            }
+                                            Button(
+                                                onClick = { navController.navigate(NavRoutes.Registration.route) }
+                                            ) {
+                                                Text("Создать новый аккаунт")
+                                            }
+                                        }
+                                    }
+                                    (0..loggedInAccounts.size - 1).forEach { i ->
+                                        item {
+                                            Box(
+                                                modifier = modifier
+                                                    .clickable {
+                                                        currentPerson = i
+                                                        navController.navigate(NavRoutes.Account.route)
+                                                    }
+                                                    .size(180.dp, 100.dp)
+                                                    .background(
+                                                        brush = Brush.linearGradient(
+                                                            colors = when (loggedInAccounts[i].genderIsMan) {
+                                                                false -> listOf(
+                                                                    Color(0xFFEF629A),
+                                                                    Color(0xFFEECDA1)
+                                                                )
+
+                                                                true -> listOf(
+                                                                    Color(0xFF2C67F2),
+                                                                    Color(0xFF62CFF4)
+                                                                )
+
+                                                                else -> {
+                                                                    listOf(Color.Gray, Color.DarkGray)
+                                                                }
+                                                            }
+                                                        ),
+                                                        shape = RoundedCornerShape(10.dp)
+                                                    )
+                                                    .clip(
+                                                        shape = RoundedCornerShape(10.dp)
+                                                    )
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    Column {
+                                                        Text(loggedInAccounts[i].surname ?: "no surname")
+                                                        Text(loggedInAccounts[i].name ?: "no name")
+                                                        Text(loggedInAccounts[i].patronymiс ?: "no patrynomic")
+                                                        Text(
+                                                            "Пол: ${
+                                                                when (loggedInAccounts[i].genderIsMan) {
+                                                                    true -> "Мужской"
+                                                                    false -> "Женский"
+                                                                    else -> {}
+                                                                }
+                                                            }"
+                                                        )
+                                                    }
+//                                            when (loggedInAccounts[i].genderIsMan) {
+//                                                true -> Icon(
+//                                                    painter = painterResource(R.drawable.baby_boy_face),
+//                                                    null,
+//                                                    tint = Color(0x66FFFFFF)
+//                                                )
+//
+//                                                false -> Icon(
+//                                                    painter = painterResource(R.drawable.baby_girl_face),
+//                                                    null,
+//                                                    tint = Color(0x66FFFFFF)
+//                                                )
+//
+//                                                else -> {}
+//                                            }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            onDismissRequest = { isСhangeAccount = false },
+                            confirmButton = {
+                                Button(
+                                    onClick = { isСhangeAccount = false }
+                                ) {
+                                    Text("Отмена")
+                                }
+                            }
+                        )
+                    }
                     // endregion
                 } else {
                     // region аккаунт психолога
@@ -695,8 +811,12 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                     var isShowBaby by remember { mutableStateOf(false) }
                     var showBaby: PersonData.BabyData? by remember { mutableStateOf(null) }
                     var isDeleteRecord: Boolean by remember { mutableStateOf(false) }
-                    Text("Добро пожаловать, ${currentPerson?.surname} ${currentPerson?.name} ${currentPerson?.patronymiс}")
-                    Row(horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Text("Добро пожаловать, ${loggedInAccounts[person]?.surname} ${loggedInAccounts[person]?.name} ${loggedInAccounts[person]?.patronymiс}")
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Text(
                             text = "Записи",
                             modifier = Modifier.clickable { mode = 1 },
@@ -716,11 +836,17 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             }
                         )
                     }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
                         when (mode) {
                             1 -> {
                                 var search by remember { mutableStateOf("") }
-                                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
                                     TextField(
                                         value = search,
                                         onValueChange = { search = it },
@@ -730,7 +856,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                         Icons.Filled.Search,
                                         "Search",
                                         modifier = Modifier
-                                            .clickable{
+                                            .clickable {
 
                                             }
                                     )
@@ -788,9 +914,13 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                     }
                                 }
                             }
+
                             2 -> {
                                 var search by remember { mutableStateOf("") }
-                                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
                                     TextField(
                                         value = search,
                                         onValueChange = { search = it },
@@ -800,7 +930,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                         Icons.Filled.Search,
                                         "Search",
                                         modifier = Modifier
-                                            .clickable{
+                                            .clickable {
 
                                             }
                                     )
@@ -895,9 +1025,9 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                     )
                                     Text("Причина: ${showRecord!!.second.reason}")
                                     Text("Кто записался:")
-                                    if (showRecord!!.second.isUserRecording) Text("• ${currentPerson?.surname} ${currentPerson?.name} ${currentPerson?.patronymiс} (Пользователь)")
+                                    if (showRecord!!.second.isUserRecording) Text("• ${loggedInAccounts[person]?.surname} ${loggedInAccounts[person]?.name} ${loggedInAccounts[person]?.patronymiс} (Пользователь)")
                                     for (el in showRecord!!.second.whoFromBabyIsRecording) {
-                                        Text("• ${el.surname} ${el.name} ${el.patronymiс}")
+                                        Text("• ${loggedInAccounts[el].surname} ${loggedInAccounts[el].name} ${loggedInAccounts[el].patronymiс}")
                                     }
                                     if (showRecord!!.second.state == Record.State.Cancelled) Text("Причина отмены: ${showRecord!!.second.reasonForRefusal}")
                                 }
@@ -933,8 +1063,8 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                     GlobalScope.launch {
 //                                isEditingBaby = false
 //                                isShowBaby = false
-//                                currentPerson!!.children!!.remove(showBaby)
-//                                users.document(auth.uid!!).set(currentPerson!!)
+//                                person!!.children!!.remove(showBaby)
+//                                users.document(auth.uid!!).set(person!!)
 //                                navController.navigate(NavRoutes.Account.route)
                                         isShowRecord = false
                                         isDeleteRecord = false
@@ -1029,7 +1159,10 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                                                     )
 
                                                                     else -> {
-                                                                        listOf(Color.Gray, Color.DarkGray)
+                                                                        listOf(
+                                                                            Color.Gray,
+                                                                            Color.DarkGray
+                                                                        )
                                                                     }
                                                                 }
                                                             ),
@@ -1096,12 +1229,10 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                                                             Color.Gray,
                                                                             Color.LightGray
                                                                         )
-
                                                                         Record.State.Сonducted -> listOf(
                                                                             Color(0xFF49C628),
                                                                             Color(0xFF70F570)
                                                                         )
-
                                                                         Record.State.Cancelled -> listOf(
                                                                             Color(0xFFFF3300),
                                                                             Color(0xFFFF8800)
@@ -1206,13 +1337,13 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                         Row(modifier = Modifier
                                             .border(1.dp, Color.Gray)
                                             .clickable{
-                                                currentPerson = accounts[person.key]
+                                                person = accounts[person.key]
                                                 navController.navigate(NavRoutes.Account.route)
                                             }
                                             .fillMaxWidth()
                                         ) {
                                             Image(
-                                                painter = painterResource(currentPerson.image),
+                                                painter = painterResource(person.image),
                                                 contentDescription = null,
                                                 modifier = Modifier.size(70.dp)
                                             )
@@ -1221,7 +1352,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                                 Text(accounts[person.key].name)
                                                 Text(accounts[person.key].patronymiс)
                                                 Text(accounts[person.key].mail)
-                                                Text( "${accounts[person.key].telephoneNumber.slice(0..1)}(${accounts[person.key].telephoneNumber.slice(2..4)})${accounts[person.key].telephoneNumber.slice(5..7)}-${accounts[person.key].telephoneNumber.slice(7..8)}-${currentPerson.telephoneNumber.slice(9..10)}")
+                                                Text( "${accounts[person.key].telephoneNumber.slice(0..1)}(${accounts[person.key].telephoneNumber.slice(2..4)})${accounts[person.key].telephoneNumber.slice(5..7)}-${accounts[person.key].telephoneNumber.slice(7..8)}-${person.telephoneNumber.slice(9..10)}")
 
                                             }
                                         }
@@ -1251,39 +1382,44 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                 */
             } else {
                 // region Editing Mode
+                // Закончить TODO()
                 var isSave by remember { mutableStateOf(false) }
-                var intermediateImage by remember { mutableIntStateOf(currentPerson!!.image) }
-                var intermediateSurname by remember { mutableStateOf(currentPerson!!.surname) }
-                var intermediateName by remember { mutableStateOf(currentPerson!!.name) }
-                var intermediatePatronymiс by remember { mutableStateOf(currentPerson!!.patronymiс) }
-                var intermediateBirthday by remember { mutableStateOf(currentPerson!!.birthday) }
+                var intermediateImage by remember { mutableIntStateOf(loggedInAccounts[person]!!.image) }
+                var intermediateSurname by remember { mutableStateOf(loggedInAccounts[person]!!.surname) }
+                var intermediateName by remember { mutableStateOf(loggedInAccounts[person]!!.name) }
+                var intermediatePatronymiс by remember { mutableStateOf(loggedInAccounts[person]!!.patronymiс) }
+                var intermediateBirthday by remember { mutableStateOf(loggedInAccounts[person]!!.birthday) }
                 var intermediateMail by remember { mutableStateOf(auth.currentUser!!.email) }
-                var intermediateTelephone by remember { mutableStateOf(currentPerson!!.telephoneNumber) }
-                var intermediateGender by remember { mutableStateOf(currentPerson!!.genderIsMan) }
-                var intermediateDescription by remember { mutableStateOf(currentPerson!!.description) }
+                var intermediateTelephone by remember { mutableStateOf(loggedInAccounts[person]!!.telephoneNumber) }
+                var intermediateGender by remember { mutableStateOf(loggedInAccounts[person]!!.genderIsMan) }
+                var intermediateDescription by remember { mutableStateOf(loggedInAccounts[person]!!.description) }
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    Text("Завершить редактирование",
-                        color = Color.Blue,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .clickable {
-                                if (
-                                    intermediateImage != currentPerson!!.image ||
-                                    intermediateSurname != currentPerson!!.surname ||
-                                    intermediateName != currentPerson!!.name ||
-                                    intermediatePatronymiс != currentPerson!!.patronymiс ||
-                                    intermediateMail != auth.currentUser!!.email ||
-                                    intermediateTelephone != currentPerson!!.telephoneNumber ||
-                                    intermediateBirthday != currentPerson!!.birthday ||
-                                    intermediateGender != currentPerson!!.genderIsMan ||
-                                    intermediateDescription != currentPerson!!.description
-                                ) {
-                                    isSave = true
-                                } else {
-                                    isEditingMode = false
-                                }
+                    Button(
+                        onClick = {
+                            if (
+                                intermediateImage != loggedInAccounts[person].image ||
+                                intermediateSurname != loggedInAccounts[person].surname ||
+                                intermediateName != loggedInAccounts[person].name ||
+                                intermediatePatronymiс != loggedInAccounts[person].patronymiс ||
+                                intermediateMail != auth.currentUser!!.email ||
+                                intermediateTelephone != loggedInAccounts[person].telephoneNumber ||
+                                intermediateBirthday != loggedInAccounts[person].birthday ||
+                                intermediateGender != loggedInAccounts[person].genderIsMan ||
+                                intermediateDescription != loggedInAccounts[person].description
+                            ) {
+                            isSave = true
+                            } else {
+                                isEditingMode = false
                             }
-                    )
+                        },
+                            modifier = Modifier
+                            .align(Alignment.TopEnd)
+                    ) {
+                        Text(
+                            "Завершить редактирование",
+                            color = Color.Blue
+                        )
+                    }
                 }
                 LazyColumn {
                     item {
@@ -1393,7 +1529,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 confirmButton = {
                                     Button(
                                         {
-
+                                            TODO()
                                         }
                                     ) {
                                         Text("Подтвердить")
@@ -1412,7 +1548,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                "Дата рождения: ${currentPerson!!.birthday}"
+                                "Дата рождения: ${loggedInAccounts[person]!!.birthday}"
                             )
                             Button(onClick = { showDatePicker = true }) {
                                 Text("Изменить")
@@ -1506,7 +1642,12 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         ) {
                             Spacer(modifier = Modifier.padding(20.dp))
                             Button(
-                                onClick = { },
+                                onClick = {
+                                    loggedInAccounts.removeAt(person)
+                                    currentPerson = loggedInAccounts.size - 1
+                                    navController.navigate(NavRoutes.Account.route)
+                                    GlobalScope.launch { snackbarHostState.showSnackbar("Вы успешно вышли из аккаунта") }
+                                },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFFFF9800)
                                 )
@@ -1514,7 +1655,13 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 Text("Выйти из аккаунта")
                             }
                             Button(
-                                onClick = { },
+                                onClick = {
+                                    loggedInAccounts.removeAt(person)
+                                    currentPerson = loggedInAccounts.size - 1
+                                    navController.navigate(NavRoutes.Account.route)
+                                    // TODO("Удалить аккаунт через auth")
+                                    GlobalScope.launch { snackbarHostState.showSnackbar("аш аккаунт успешно удалён") }
+                                          },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color.Red
                                 )
@@ -1538,21 +1685,27 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             Row {
                                 Button(
                                     {
-                                        currentPerson!!.image = intermediateImage
-                                        currentPerson!!.surname = intermediateSurname
-                                        currentPerson!!.name = intermediateName
-                                        currentPerson!!.patronymiс = intermediatePatronymiс
+                                        loggedInAccounts[person]!!.image = intermediateImage
+                                        loggedInAccounts[person]!!.surname =
+                                            intermediateSurname
+                                        loggedInAccounts[person]!!.name = intermediateName
+                                        loggedInAccounts[person]!!.patronymiс =
+                                            intermediatePatronymiс
 
-                                        if (intermediateTelephone!![0] == '+') currentPerson!!.telephoneNumber =
+                                        if (intermediateTelephone!![0] == '+') loggedInAccounts[person]!!.telephoneNumber =
                                             intermediateTelephone
-                                        else currentPerson!!.telephoneNumber =
+                                        else loggedInAccounts[person]!!.telephoneNumber =
                                             "+$intermediateTelephone"
-                                        currentPerson!!.birthday = intermediateBirthday
-                                        currentPerson!!.description = intermediateDescription
-                                        currentPerson!!.genderIsMan = intermediateGender
+                                        loggedInAccounts[person]!!.birthday =
+                                            intermediateBirthday
+                                        loggedInAccounts[person]!!.description =
+                                            intermediateDescription
+                                        loggedInAccounts[person]!!.genderIsMan =
+                                            intermediateGender
 
                                         auth.currentUser!!.updateEmail(intermediateMail!!)
-                                        users.document(auth.uid!!).set(currentPerson!!)
+                                        users.document(auth.uid!!)
+                                            .set(loggedInAccounts[person]!!)
                                         isSave = false
                                         isEditingMode = false
                                     }
@@ -1571,12 +1724,19 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         }
                     )
                 }
-                // endregion
             }
-        } else {
-            // region Нет Сети
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
-                Text("Что-бы просматривать информацию об аккаунте, необходимо войти или зарегистроваться:", textAlign = TextAlign.Center)
+            // endregion
+        } ?: run {
+            // region Не вошёл
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text(
+                    "Что-бы просматривать информацию об аккаунте, необходимо войти или зарегистроваться:",
+                    textAlign = TextAlign.Center
+                )
                 Spacer(modifier = Modifier.padding(10.dp))
                 Button(
                     {
@@ -1597,4 +1757,5 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
         }
     }
 }
+
 

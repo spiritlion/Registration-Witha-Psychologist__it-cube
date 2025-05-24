@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -245,8 +246,8 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
             }
             item {
                 val currentDate = LocalDate.now()
-                var currentMonth by remember { mutableStateOf(currentDate.monthValue) }
-                var currentYear by remember { mutableStateOf(currentDate.year) }
+                var currentMonth by remember { mutableIntStateOf(currentDate.monthValue) }
+                var currentYear by remember { mutableIntStateOf(currentDate.year) }
                 val daysInMonth = LocalDate.of(currentYear, currentMonth, 1).lengthOfMonth()
                 val firstDayOfWeek = LocalDate.of(currentYear, currentMonth, 1).dayOfWeek.value % 7 // Пн=0, Вт=1, ..., Вс=6
                 val pagerState = rememberPagerState(pageCount = {(daysInMonth + firstDayOfWeek + 6) / 7})

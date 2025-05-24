@@ -54,6 +54,8 @@ import com.example.registrationwithapsychologist__itcube.custom_composable.Accou
 import com.example.registrationwithapsychologist__itcube.custom_composable.Interface.AccountScreen
 import com.example.registrationwithapsychologist__itcube.custom_composable.Interface.MenuScreen
 import com.example.registrationwithapsychologist__itcube.custom_composable.Interface.RegistrationScreen
+import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.PsycgologData
+import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.Record
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.InfoScreen
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.LogScreen
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Interface.MainMenuScreen
@@ -62,6 +64,7 @@ import com.example.registrationwithapsychologist__itcube___newversion.custom_com
 import com.example.registrationwithapsychologist__itcube___newversion.ui.theme.RegistrationWithAPsychologistITCubeNewVersionTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -71,10 +74,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.Record
-import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.PsycgologData
+import kotlin.jvm.java
 
-var currentPerson : PersonData? = null
+var loggedInAccounts = mutableStateListOf<PersonData>()
+var currentPerson : Int? = 0
 var listUsersWithId = mutableStateListOf<Pair<String, PersonData>>()
 var listRecordsWithId = mutableStateListOf<Pair<String, Record>>()
 var listPsychologs = mutableStateListOf<PsycgologData>()
@@ -84,6 +87,7 @@ var isTheme = mutableIntStateOf(0) // 0 - system 1 - light 2 - dark
 
 class MainActivity : ComponentActivity() {
     val auth = Firebase.auth
+
     var db = Firebase.firestore
     var users = db.collection("users")
     var records = db.collection("records")
@@ -94,12 +98,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (isOnline(this)) {
+            // start verification on click of the button
             GlobalScope.launch {
                 if (auth.uid != null) {
-                    currentPerson = users.document(auth.uid!!)
+                    users.document(auth.uid!!)
                         .get()
                         .await()
                         .toObject(PersonData::class.java)
+                        ?.let { loggedInAccounts.add(it) }
+                    currentPerson = loggedInAccounts.size - 1
                 }
                 val userSnapshot = users
                     .get()
@@ -122,7 +129,6 @@ class MainActivity : ComponentActivity() {
                         listRecordsWithId.add(Pair(document.id, record))
                     }
                 }
-
                 val psychologsSnapshot = psychologs
                     .get()
                     .await()
@@ -134,44 +140,51 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-        }
-        enableEdgeToEdge()
-        setContent {
-            val context = LocalContext.current
-            val repository = remember { DataStoreRepository(context.dataStore) }
+            enableEdgeToEdge()
+            setContent {
+                val context = LocalContext.current
+                val repository = remember { DataStoreRepository(context.dataStore) }
 
-            // Слушаем изменения в DataStore
-            LaunchedEffect(Unit) {
-                repository.intFlow.collectLatest { value ->
-                    isTheme.intValue = value
+                // Слушаем изменения в DataStore
+                LaunchedEffect(Unit) {
+                    repository.intFlow.collectLatest { value ->
+                        isTheme.intValue = value
+                    }
                 }
-            }
-            var isDarkTheme = when (isTheme.intValue) {
-                1 -> false
-                2 -> true
-                else -> isSystemInDarkTheme()
-            }
-            RegistrationWithAPsychologistITCubeNewVersionTheme(isDarkTheme = isDarkTheme) {
-                Scaffold(modifier = Modifier.fillMaxSize()) {
-                    if (isOnline(this) || isNonOlineBut.value) {
-                        Main(modifier =  Modifier.padding(it), auth, db, users, repository, records)
-                    } else {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Warning,
-                                contentDescription = null
+                var isDarkTheme = when (isTheme.intValue) {
+                    1 -> false
+                    2 -> true
+                    else -> isSystemInDarkTheme()
+                }
+                RegistrationWithAPsychologistITCubeNewVersionTheme(isDarkTheme = isDarkTheme) {
+                    Scaffold(modifier = Modifier.fillMaxSize()) {
+                        if (isOnline(this) || isNonOlineBut.value) {
+                            Main(
+                                modifier = Modifier.padding(it),
+                                auth,
+                                db,
+                                users,
+                                repository,
+                                records
                             )
-                            Text("Вы не в сети")
-                            Text("Зайдите позже пожалуйста")
-                            Button( {
-                                isNonOlineBut.value = true
-                            } ) {
-                                Text("Продолжить без интернета")
+                        } else {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Warning,
+                                    contentDescription = null
+                                )
+                                Text("Вы не в сети")
+                                Text("Зайдите позже пожалуйста")
+                                Button({
+                                    isNonOlineBut.value = true
+                                }) {
+                                    Text("Продолжить без интернета")
+                                }
                             }
                         }
                     }
@@ -179,10 +192,17 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
 
+}
 @Composable
-fun Main(modifier: Modifier = Modifier, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference, repository: DataStoreRepository, records: CollectionReference) {
+fun Main(
+    modifier: Modifier = Modifier,
+    auth: FirebaseAuth,
+    db: FirebaseFirestore,
+    users: CollectionReference,
+    repository: DataStoreRepository,
+    records: CollectionReference
+) {
     val navController = rememberNavController()
     Column(modifier) {
         NavBar(navController = navController, auth, db, users, repository, records)
@@ -190,7 +210,14 @@ fun Main(modifier: Modifier = Modifier, auth: FirebaseAuth, db : FirebaseFiresto
 }
 
 @Composable
-fun NavBar(navController: NavHostController, auth: FirebaseAuth, db : FirebaseFirestore, users: CollectionReference, repository: DataStoreRepository, records: CollectionReference){
+fun NavBar(
+    navController: NavHostController,
+    auth: FirebaseAuth,
+    db: FirebaseFirestore,
+    users: CollectionReference,
+    repository: DataStoreRepository,
+    records: CollectionReference
+){
     val items = listOf("Информация о психологе", "Запись", "Аккаунт", "Настройки", "TEST_SCREEN")
     val selectedItem = remember { mutableStateOf("Запись к психологу. IT-куб") }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -278,7 +305,7 @@ sealed class NavRoutes(val route: String) {
     data object Test : NavRoutes("test")
 }
 
-suspend fun registrationUser(email: String, password: String, auth : FirebaseAuth, db: FirebaseFirestore, users: CollectionReference, newPerson: PersonData) {
+suspend fun registrationUserWithEmail(email: String, password: String, auth : FirebaseAuth, db: FirebaseFirestore, users: CollectionReference, newPerson: PersonData) {
     auth.createUserWithEmailAndPassword(email, password)
         .await()
         .let { result ->
@@ -287,13 +314,14 @@ suspend fun registrationUser(email: String, password: String, auth : FirebaseAut
             } else Log.w(TAG, "It`s non ok")
         }
     users.document(auth.uid!!).set(newPerson)
-    currentPerson = users.document(auth.uid!!)
+    users.document(auth.uid!!)
         .get()
         .await()
         .toObject(PersonData::class.java)
+        ?.let { loggedInAccounts.add(it); currentPerson = loggedInAccounts.size - 1 }
 }
 
-suspend fun logUser(email: String, password: String, auth : FirebaseAuth, users: CollectionReference) : Boolean {
+suspend fun logUserWithEmail(email: String, password: String, auth : FirebaseAuth, users: CollectionReference) : Boolean {
     try {
         auth.signInWithEmailAndPassword(email, password)
             .await()
@@ -304,10 +332,11 @@ suspend fun logUser(email: String, password: String, auth : FirebaseAuth, users:
             }
         return auth.uid?.let { uid ->
             if (auth.currentUser != null){
-                currentPerson = users.document(uid)
+                users.document(uid)
                     .get()
                     .await()
                     .toObject(PersonData::class.java)
+                    ?.let { loggedInAccounts.add(it); currentPerson = loggedInAccounts.size - 1 }
                 return true
             } else {
                 return false
@@ -319,11 +348,27 @@ suspend fun logUser(email: String, password: String, auth : FirebaseAuth, users:
     }
 }
 
+
 suspend fun recordDate(records: CollectionReference, record: Record) {
     records.document()
         .set(record)
         .await()
 }
+
+suspend fun updateRecords(records: CollectionReference) {
+    val recordsSnapshot = records
+        .get()
+        .await()
+    listRecordsWithId.clear() // Очищаем список перед добавлением новых данных
+    for (document in recordsSnapshot.documents) {
+        val record = document.toObject(Record::class.java)
+        if (record != null) {
+            // Добавляем пару (ID документа, объект Record) в список
+            listRecordsWithId.add(Pair(document.id, record))
+        }
+    }
+}
+
 /*
 suspend fun findRecord(record: Record, db: FirebaseFirestore, records: CollectionReference): DocumentSnapshot? {
     return try {

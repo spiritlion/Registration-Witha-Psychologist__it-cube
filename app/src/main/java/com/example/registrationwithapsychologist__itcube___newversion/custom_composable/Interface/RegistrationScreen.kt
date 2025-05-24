@@ -45,9 +45,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
-import com.example.registrationwithapsychologist__itcube___newversion.registrationUser
+import com.example.registrationwithapsychologist__itcube___newversion.registrationUserWithEmail
 import com.example.registrationwithapsychologist__itcube___newversion.avatars
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
+import com.example.registrationwithapsychologist__itcube___newversion.loggedInAccounts
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
@@ -105,7 +106,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
 
     val avatar by remember { mutableIntStateOf(avatars[0]) }
     var changeAvatar by remember { mutableStateOf(false) }
-    var description by remember { mutableStateOf(currentPerson?.description) }
+    var description by remember { mutableStateOf("") }
     LazyColumn(
         modifier = modifier
             .fillMaxSize(),
@@ -296,7 +297,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                             isAgree
                         ) {
                             GlobalScope.launch {
-                                registrationUser(
+                                registrationUserWithEmail(
                                     email = mail,
                                     password = password,
                                     auth = auth,
@@ -385,7 +386,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                     .clip(CircleShape)
                                     .border(
                                         5.dp,
-                                        if (el == currentPerson?.image) {
+                                        if (el == loggedInAccounts[currentPerson!!].image) {
                                             MaterialTheme.colorScheme.outline
                                         } else {
                                             Color.Transparent
@@ -393,7 +394,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                         CircleShape
                                     )
                                     .clickable {
-                                        currentPerson?.image = el
+                                        loggedInAccounts[currentPerson!!].image = el
                                         changeAvatar = false
                                     }
                             )

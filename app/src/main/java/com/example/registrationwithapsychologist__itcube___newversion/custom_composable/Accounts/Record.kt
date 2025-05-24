@@ -42,7 +42,7 @@ data class Record(
     /**
      * Кого, из своих детей записал пользователь
      */
-    var whoFromBabyIsRecording: MutableList<PersonData.BabyData> = mutableListOf(),
+    var whoFromBabyIsRecording: MutableList<Int> = mutableListOf(),
     /**
      * Итог сеанса
      * (То, что видит психолог)

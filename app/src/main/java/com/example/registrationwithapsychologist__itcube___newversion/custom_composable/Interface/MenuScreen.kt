@@ -36,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -51,7 +52,10 @@ import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.Record
 import com.example.registrationwithapsychologist__itcube___newversion.listRecordsWithId
+import com.example.registrationwithapsychologist__itcube___newversion.loggedInAccounts
 import com.example.registrationwithapsychologist__itcube___newversion.recordDate
+import com.example.registrationwithapsychologist__itcube___newversion.updateRecords
+import com.google.android.play.core.integrity.v
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
@@ -71,7 +75,7 @@ fun MenuScreen(
     records: CollectionReference,
     auth: FirebaseAuth
 ) {
-    if (currentPerson != null) {
+    currentPerson?.let { person ->
 
         var reason by remember { mutableStateOf("") }
 
@@ -88,10 +92,7 @@ fun MenuScreen(
         var isShowCalendar by remember { mutableStateOf(false) }
 
         var isIRecording by remember { mutableStateOf(false) }
-        var whoFromBabyIsRecording by remember { mutableStateOf(mutableMapOf<PersonData.BabyData, Boolean>()) } // Ребёнка записать = добавить его i в спец. список
-        for (el in currentPerson?.children ?: listOf()) {
-            whoFromBabyIsRecording[el] = true
-        }
+        var whoFromBabyIsRecording = remember { mutableStateListOf<Int>() } // Ребёнка записать = добавить его i в спец. список
         Row {
             Spacer(
                 modifier = Modifier
@@ -132,7 +133,7 @@ fun MenuScreen(
                     }
                     Column {
                         Row {
-                            Text("${currentPerson!!.surname!!} ${currentPerson!!.name!!} ${currentPerson!!.patronymiс!!} (Вы)", modifier = Modifier.weight(1f))
+                            Text("${loggedInAccounts[person]!!.surname!!} ${loggedInAccounts[person]!!.name!!} ${loggedInAccounts[person]!!.patronymiс!!} (Вы)", modifier = Modifier.weight(1f))
                             Checkbox(
                                 checked = isIRecording,
                                 onCheckedChange = { isIRecording = it },
@@ -140,18 +141,17 @@ fun MenuScreen(
                                     .width(50.dp)
                             )
                         }
-                        for (el in whoFromBabyIsRecording) {
+                        for (i in 0..(loggedInAccounts[person].children?.size?.minus(1) ?: 0)) {
                             Row(modifier = Modifier.fillMaxWidth()) {
-                                Text("${el.key.surname} ${el.key.name} ${el.key.patronymiс}", modifier = Modifier.weight(1f))
+                                loggedInAccounts[person].children?.get(i)?.let { Text("${it.surname} ${it.name} ${it.patronymiс}", modifier = Modifier.weight(1f)) }
                                 Checkbox(
-                                    checked = el.value,
+                                    checked = i in whoFromBabyIsRecording,
                                     onCheckedChange = {
-                                        val intermediate : MutableMap<PersonData. BabyData, Boolean> = mutableMapOf()
-                                        for (i in whoFromBabyIsRecording) {
-                                            intermediate[i.key] = i.value
-                                        }// пройтись циклом
-                                        intermediate[el.key] = it
-                                        whoFromBabyIsRecording = intermediate
+                                        if (i in whoFromBabyIsRecording) {
+                                            whoFromBabyIsRecording.remove(i)
+                                        } else {
+                                            whoFromBabyIsRecording.add(i)
+                                        }
                                     },
                                     modifier = Modifier
                                         .width(50.dp)
@@ -171,10 +171,6 @@ fun MenuScreen(
                 )
                 Button(
                     onClick = {
-                        var whoFromBabyIsRecordingList = mutableListOf<PersonData.BabyData>()
-                        for (el in whoFromBabyIsRecording) {
-                            if (el.value) whoFromBabyIsRecordingList.add(el.key)
-                        }
                         GlobalScope.launch {
                             recordDate(
                                 records,
@@ -192,10 +188,12 @@ fun MenuScreen(
                                     psychologist = "",
                                     reason = reason,
                                     isUserRecording = isIRecording,
-                                    whoFromBabyIsRecording = whoFromBabyIsRecordingList
+                                    whoFromBabyIsRecording = whoFromBabyIsRecording
                                 )
                             )
+                            updateRecords(records)
                         }
+                        navController.navigate(NavRoutes.Account.route)
                     },
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
@@ -277,66 +275,69 @@ fun MenuScreen(
                                 ) { page ->
                             Column {
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                                    for (day in 1 .. 5) {
-                                        val dayIndex = page * 5 + day - firstDayOfWeek
+                                    for (day in 1 .. 7) {
+                                        val dayIndex = page * 7 + day - firstDayOfWeek
                                         val isToday = dayIndex == LocalDate.now().dayOfMonth && currentMonth.value == LocalDate.now().monthValue && currentYear == LocalDate.now().year
-                                        Column(modifier = Modifier
-                                            .border(
-                                                width = if (isToday) 2.dp else 0.dp,
-                                                color = if (isToday) Color.Blue else Color.Transparent
-                                            )
-                                        ){
-                                            Text(
-                                                text = when (day) {
-                                                    1 -> "Пн"
-                                                    2 -> "Вт"
-                                                    3 -> "Ср"
-                                                    4 -> "Чт"
-                                                    5 -> "Пт"
-                                                    else -> ""
-                                                }
-                                            )
-                                            if (dayIndex in 1..daysInMonth) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .padding(8.dp),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    Text(
-                                                        text = dayIndex.toString()
+                                        if (day !in 1..5) {
+                                            Column(
+                                                modifier = Modifier
+                                                    .border(
+                                                        width = if (isToday) 2.dp else 0.dp,
+                                                        color = if (isToday) Color.Blue else Color.Transparent
                                                     )
-                                                }
-                                                for (el in listOf(
-                                                    8,
-                                                    9,
-                                                    10,
-                                                    11,
-                                                    12,
-                                                    13,
-                                                    14,
-                                                    15,
-                                                    16,
-                                                    17
-                                                )) {
-                                                    /**
-                                                     *  0 - не занята;
-                                                     *  1 - не доступна;
-                                                     *  2 - занята кем-то другим;
-                                                     *  3 - занята этим пользователем;
-                                                     */
-                                                    val labelStatus by remember { mutableIntStateOf(
-                                                        if (
-                                                            LocalDate.of(
-                                                                currentYear,
-                                                                currentMonth,
-                                                                dayIndex
-                                                            ) < LocalDate.now()
-                                                        ) 1
-                                                        else {
-                                                            /**
-                                                             * Исправить в следующем году
-                                                             **/
-                                                            /*
+                                            ) {
+                                                Text(
+                                                    text = when (day) {
+                                                        1 -> "Пн"
+                                                        2 -> "Вт"
+                                                        3 -> "Ср"
+                                                        4 -> "Чт"
+                                                        5 -> "Пт"
+                                                        else -> ""
+                                                    }
+                                                )
+                                                if (dayIndex in 1..daysInMonth) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .padding(8.dp),
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        Text(
+                                                            text = dayIndex.toString()
+                                                        )
+                                                    }
+                                                    for (el in listOf(
+                                                        8,
+                                                        9,
+                                                        10,
+                                                        11,
+                                                        12,
+                                                        13,
+                                                        14,
+                                                        15,
+                                                        16,
+                                                        17
+                                                    )) {
+                                                        /**
+                                                         *  0 - не занята;
+                                                         *  1 - не доступна;
+                                                         *  2 - занята кем-то другим;
+                                                         *  3 - занята этим пользователем;
+                                                         */
+                                                        val labelStatus by remember {
+                                                            mutableIntStateOf(
+                                                                if (
+                                                                    LocalDate.of(
+                                                                        currentYear,
+                                                                        currentMonth,
+                                                                        dayIndex
+                                                                    ) < LocalDate.now()
+                                                                ) 1
+                                                                else {
+                                                                    /**
+                                                                     * Исправить в следующем году
+                                                                     **/
+                                                                    /*
                                                             listRecordsWithId.forEach {
                                                                 if (
                                                                     currentYear == it.second.time.toDate().year.plus(
@@ -352,44 +353,46 @@ fun MenuScreen(
                                                                 }
                                                             }
                                                              */
-                                                            0
+                                                                    0
+                                                                }
+                                                            )
                                                         }
-                                                    ) }
-                                                    Text(
-                                                        text = "$el:00",
-                                                        modifier = Modifier
-                                                            .clickable{
-                                                                newSelectedDay = LocalDate.of(
-                                                                    /* year = */ currentYear,
-                                                                    /* month = */ currentMonth,
-                                                                    /* dayOfMonth = */ dayIndex
-                                                                )
-                                                                newSelectedTime = LocalTime.of(
-                                                                    /* hour = */ el,
-                                                                    /* minute = */ 0
-                                                                )
-                                                            },
-                                                        color = if (
-                                                            currentYear == newSelectedDay?.year &&
-                                                            currentMonth == newSelectedDay?.month &&
-                                                            dayIndex == newSelectedDay?.dayOfMonth &&
-                                                            el == newSelectedTime?.hour
-                                                        ) {
-                                                            Color.Blue
-                                                        } else {
-                                                            when (labelStatus) {
-                                                                0 -> Color.Unspecified
-                                                                1 -> Color.Gray
-                                                                2 -> Color.Red
-                                                                3 -> Color.Green
-                                                                else -> Color.Unspecified
+                                                        Text(
+                                                            text = "$el:00",
+                                                            modifier = Modifier
+                                                                .clickable {
+                                                                    newSelectedDay = LocalDate.of(
+                                                                        /* year = */ currentYear,
+                                                                        /* month = */ currentMonth,
+                                                                        /* dayOfMonth = */ dayIndex
+                                                                    )
+                                                                    newSelectedTime = LocalTime.of(
+                                                                        /* hour = */ el,
+                                                                        /* minute = */ 0
+                                                                    )
+                                                                },
+                                                            color = if (
+                                                                currentYear == newSelectedDay?.year &&
+                                                                currentMonth == newSelectedDay?.month &&
+                                                                dayIndex == newSelectedDay?.dayOfMonth &&
+                                                                el == newSelectedTime?.hour
+                                                            ) {
+                                                                Color.Blue
+                                                            } else {
+                                                                when (labelStatus) {
+                                                                    0 -> Color.Unspecified
+                                                                    1 -> Color.Gray
+                                                                    2 -> Color.Red
+                                                                    3 -> Color.Green
+                                                                    else -> Color.Unspecified
+                                                                }
                                                             }
-                                                        }
-                                                    )
-                                                }
-                                            } // else {
+                                                        )
+                                                    }
+                                                } // else {
 //                                                Spacer(modifier = Modifier.weight(1f)) // Пустое пространство для дней вне месяца
 //                                            }
+                                            }
                                         }
                                     }
                                 }
@@ -460,7 +463,7 @@ fun MenuScreen(
                 }
             )
         }
-    } else {
+    } ?: run {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
             Text("Что-бы записаться к психологу, необходимо войти или зарегистроваться:", textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.padding(10.dp))

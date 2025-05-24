@@ -15,7 +15,7 @@ class DataStoreRepository(private val dataStore: DataStore<Preferences>) {
     // Функция для получения значения из DataStore
     val booleanFlow: Flow<Boolean> = dataStore.data
         .map { preferences ->
-            preferences[booleanKey] ?: false // Возвращает false по умолчанию
+            preferences[booleanKey] == true // Возвращает false по умолчанию
         }
     val intFlow : Flow<Int> = dataStore.data
         .map { preferences ->
