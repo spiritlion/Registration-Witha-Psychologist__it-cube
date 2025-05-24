@@ -87,14 +87,11 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
              */
             }
             item {
-
-
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     // Creating a button that on
                     // click displays/shows the DatePickerDialog
                     Button(
@@ -105,7 +102,6 @@ fun TestingScreen(navController : NavHostController, modifier: Modifier = Modifi
                     ) {
                         Text(text = "Open Date Picker", color = Color.White)
                     }
-
                     // Adding a space of 100dp height
                     Spacer(modifier = Modifier.size(100.dp))
 

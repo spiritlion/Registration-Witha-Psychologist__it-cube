@@ -1,5 +1,6 @@
 package com.example.registrationwithapsychologist__itcube___newversion
 
+import android.annotation.SuppressLint
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.net.ConnectivityManager
@@ -36,11 +37,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -76,8 +79,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlin.jvm.java
 
-var loggedInAccounts = mutableStateListOf<PersonData>()
-var currentPerson : Int? = 0
+var currentPerson : PersonData? = null
 var listUsersWithId = mutableStateListOf<Pair<String, PersonData>>()
 var listRecordsWithId = mutableStateListOf<Pair<String, Record>>()
 var listPsychologs = mutableStateListOf<PsycgologData>()
@@ -92,99 +94,98 @@ class MainActivity : ComponentActivity() {
     var users = db.collection("users")
     var records = db.collection("records")
     var psychologs = db.collection("psychologs")
-    private val isNonOlineBut = mutableStateOf(false)
 
+    @SuppressLint("CoroutineCreationDuringComposition")
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (isOnline(this)) {
-            // start verification on click of the button
-            GlobalScope.launch {
-                if (auth.uid != null) {
-                    users.document(auth.uid!!)
-                        .get()
-                        .await()
-                        .toObject(PersonData::class.java)
-                        ?.let { loggedInAccounts.add(it) }
-                    currentPerson = loggedInAccounts.size - 1
-                }
-                val userSnapshot = users
-                    .get()
-                    .await()
-                listUsersWithId.clear()
-                for (document in userSnapshot.documents) {
-                    val user = document.toObject(PersonData::class.java)
-                    if (user != null) {
-                        listUsersWithId.add(Pair(document.id, user))
-                    }
-                }
-                val recordsSnapshot = records
-                    .get()
-                    .await()
-                listRecordsWithId.clear() // Очищаем список перед добавлением новых данных
-                for (document in recordsSnapshot.documents) {
-                    val record = document.toObject(Record::class.java)
-                    if (record != null) {
-                        // Добавляем пару (ID документа, объект Record) в список
-                        listRecordsWithId.add(Pair(document.id, record))
-                    }
-                }
-                val psychologsSnapshot = psychologs
-                    .get()
-                    .await()
-                listPsychologs.clear()
-                for (document in psychologsSnapshot.documents) {
-                    val psycgolog = document.toObject(PsycgologData::class.java)
-                    if (psycgolog != null) {
-                        listPsychologs.add(psycgolog)
-                    }
-                }
-            }
-            enableEdgeToEdge()
-            setContent {
-                val context = LocalContext.current
-                val repository = remember { DataStoreRepository(context.dataStore) }
 
-                // Слушаем изменения в DataStore
-                LaunchedEffect(Unit) {
-                    repository.intFlow.collectLatest { value ->
-                        isTheme.intValue = value
-                    }
-                }
-                var isDarkTheme = when (isTheme.intValue) {
-                    1 -> false
-                    2 -> true
-                    else -> isSystemInDarkTheme()
-                }
-                RegistrationWithAPsychologistITCubeNewVersionTheme(isDarkTheme = isDarkTheme) {
-                    Scaffold(modifier = Modifier.fillMaxSize()) {
-                        if (isOnline(this) || isNonOlineBut.value) {
-                            Main(
-                                modifier = Modifier.padding(it),
-                                auth,
-                                db,
-                                users,
-                                repository,
-                                records
-                            )
-                        } else {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Warning,
-                                    contentDescription = null
-                                )
-                                Text("Вы не в сети")
-                                Text("Зайдите позже пожалуйста")
-                                Button({
-                                    isNonOlineBut.value = true
-                                }) {
-                                    Text("Продолжить без интернета")
+        enableEdgeToEdge()
+        setContent {
+            val context = this
+            var inOnline by remember { mutableStateOf(isOnline(context)) }
+            val isDarkTheme = when (isTheme.intValue) {
+                1 -> false
+                2 -> true
+                else -> isSystemInDarkTheme()
+            }
+            RegistrationWithAPsychologistITCubeNewVersionTheme(isDarkTheme = isDarkTheme) {
+                Scaffold(modifier = Modifier.fillMaxSize()) {
+                    if (inOnline) {
+                        // start verification on click of the button
+                        GlobalScope.launch {
+                            if (auth.uid != null) {
+                                users.document(auth.uid!!)
+                                    .get()
+                                    .await()
+                                    .toObject(PersonData::class.java)
+                                    ?.let { currentPerson = it }
+                            }
+                            val userSnapshot = users
+                                .get()
+                                .await()
+                            listUsersWithId.clear()
+                            for (document in userSnapshot.documents) {
+                                val user = document.toObject(PersonData::class.java)
+                                if (user != null) {
+                                    listUsersWithId.add(Pair(document.id, user))
                                 }
+                            }
+                            val recordsSnapshot = records
+                                .get()
+                                .await()
+                            listRecordsWithId.clear() // Очищаем список перед добавлением новых данных
+                            for (document in recordsSnapshot.documents) {
+                                val record = document.toObject(Record::class.java)
+                                if (record != null) {
+                                    // Добавляем пару (ID документа, объект Record) в список
+                                    listRecordsWithId.add(Pair(document.id, record))
+                                }
+                            }
+                            val psychologsSnapshot = psychologs
+                                .get()
+                                .await()
+                            listPsychologs.clear()
+                            for (document in psychologsSnapshot.documents) {
+                                val psycgolog = document.toObject(PsycgologData::class.java)
+                                if (psycgolog != null) {
+                                    listPsychologs.add(psycgolog)
+                                }
+                            }
+                        }
+                        val context = LocalContext.current
+                        val repository = remember { DataStoreRepository(context.dataStore) }
+                        // Слушаем изменения в DataStore
+                        LaunchedEffect(Unit) {
+                            repository.intFlow.collectLatest { value ->
+                                isTheme.intValue = value
+                            }
+                        }
+                        Main(
+                            modifier = Modifier.padding(it),
+                            auth,
+                            db,
+                            users,
+                            repository,
+                            records
+                        )
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Warning,
+                                contentDescription = null
+                            )
+                            Text("Вы не в сети")
+                            Text("Зайдите позже пожалуйста")
+                            Button(
+                                onClick = { inOnline = isOnline(context) }
+                            ) {
+                                Text("Повторить попытку")
                             }
                         }
                     }
@@ -192,8 +193,9 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
 }
+
+
 @Composable
 fun Main(
     modifier: Modifier = Modifier,
@@ -318,7 +320,7 @@ suspend fun registrationUserWithEmail(email: String, password: String, auth : Fi
         .get()
         .await()
         .toObject(PersonData::class.java)
-        ?.let { loggedInAccounts.add(it); currentPerson = loggedInAccounts.size - 1 }
+        ?.let { currentPerson = it }
 }
 
 suspend fun logUserWithEmail(email: String, password: String, auth : FirebaseAuth, users: CollectionReference) : Boolean {
@@ -336,7 +338,7 @@ suspend fun logUserWithEmail(email: String, password: String, auth : FirebaseAut
                     .get()
                     .await()
                     .toObject(PersonData::class.java)
-                    ?.let { loggedInAccounts.add(it); currentPerson = loggedInAccounts.size - 1 }
+                    ?.let { currentPerson = it }
                 return true
             } else {
                 return false
@@ -347,7 +349,6 @@ suspend fun logUserWithEmail(email: String, password: String, auth : FirebaseAut
         return false
     }
 }
-
 
 suspend fun recordDate(records: CollectionReference, record: Record) {
     records.document()

@@ -47,15 +47,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
 import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.Record
-import com.example.registrationwithapsychologist__itcube___newversion.listRecordsWithId
-import com.example.registrationwithapsychologist__itcube___newversion.loggedInAccounts
 import com.example.registrationwithapsychologist__itcube___newversion.recordDate
 import com.example.registrationwithapsychologist__itcube___newversion.updateRecords
-import com.google.android.play.core.integrity.v
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
@@ -92,7 +88,7 @@ fun MenuScreen(
         var isShowCalendar by remember { mutableStateOf(false) }
 
         var isIRecording by remember { mutableStateOf(false) }
-        var whoFromBabyIsRecording = remember { mutableStateListOf<Int>() } // Ребёнка записать = добавить его i в спец. список
+        val whoFromBabyIsRecording = remember { mutableStateListOf<Int>() } // Ребёнка записать = добавить его i в спец. список
         Row {
             Spacer(
                 modifier = Modifier
@@ -133,7 +129,7 @@ fun MenuScreen(
                     }
                     Column {
                         Row {
-                            Text("${loggedInAccounts[person]!!.surname!!} ${loggedInAccounts[person]!!.name!!} ${loggedInAccounts[person]!!.patronymiс!!} (Вы)", modifier = Modifier.weight(1f))
+                            Text("${person.surname!!} ${person!!.name!!} ${person!!.patronymiс!!} (Вы)", modifier = Modifier.weight(1f))
                             Checkbox(
                                 checked = isIRecording,
                                 onCheckedChange = { isIRecording = it },
@@ -141,9 +137,9 @@ fun MenuScreen(
                                     .width(50.dp)
                             )
                         }
-                        for (i in 0..(loggedInAccounts[person].children?.size?.minus(1) ?: 0)) {
+                        for (i in 0..(person.children?.size?.minus(1) ?: 0)) {
                             Row(modifier = Modifier.fillMaxWidth()) {
-                                loggedInAccounts[person].children?.get(i)?.let { Text("${it.surname} ${it.name} ${it.patronymiс}", modifier = Modifier.weight(1f)) }
+                                person.children?.get(i)?.let { Text("${it.surname} ${it.name} ${it.patronymiс}", modifier = Modifier.weight(1f)) }
                                 Checkbox(
                                     checked = i in whoFromBabyIsRecording,
                                     onCheckedChange = {
@@ -204,18 +200,11 @@ fun MenuScreen(
         }
         if (isShowCalendar) {
             var currentMonth by remember { mutableStateOf(selectedDay?.month ?: LocalDate.now().month) }
-            var currentYear by remember { mutableStateOf(selectedDay?.year ?: LocalDate.now().year) }
-            var dayOfMonth = currentMonth?.length(
-                if (currentYear % 400 == 0) { true }
-                else if (currentYear % 100 == 0) { false }
-                else if (currentYear % 4 == 0) { true }
-                else { false }
-            ) ?: LocalDate.now().dayOfMonth
+            var currentYear by remember { mutableIntStateOf(selectedDay?.year ?: LocalDate.now().year) }
             var newSelectedDay by remember { mutableStateOf(selectedDay) }
             var newSelectedTime by remember { mutableStateOf(selectedTime) }
 
             var showDataPickerDialog by remember { mutableStateOf(false) }
-
 
             val daysInMonth = LocalDate.of(currentYear, currentMonth, 1).lengthOfMonth()
             val firstDayOfWeek = LocalDate.of(currentYear, currentMonth, 1).dayOfWeek.value % 7 // Пн=0, Вт=1, ..., Вс=6

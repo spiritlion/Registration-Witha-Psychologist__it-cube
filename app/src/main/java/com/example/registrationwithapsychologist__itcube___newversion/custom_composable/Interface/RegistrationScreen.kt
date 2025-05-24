@@ -1,7 +1,5 @@
 package com.example.registrationwithapsychologist__itcube.custom_composable.Interface
 
-import android.app.DatePickerDialog
-import android.widget.DatePicker
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,20 +13,27 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -38,7 +43,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -48,7 +52,6 @@ import com.example.registrationwithapsychologist__itcube.custom_composable.Accou
 import com.example.registrationwithapsychologist__itcube___newversion.registrationUserWithEmail
 import com.example.registrationwithapsychologist__itcube___newversion.avatars
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
-import com.example.registrationwithapsychologist__itcube___newversion.loggedInAccounts
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
@@ -56,8 +59,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.sql.Date
 import java.util.Calendar
-import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
@@ -71,36 +74,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
     var surname by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
     var patronymiс by remember { mutableStateOf("") }
-    val mContext = LocalContext.current
-
-    // Declaring integer values
-    // for year, month and day
-    val mYear: Int
-    val mMonth: Int
-    val mDay: Int
-
-    // Initializing a Calendar
-    val mCalendar = Calendar.getInstance()
-
-    // Fetching current year, month and day
-    mYear = mCalendar.get(Calendar.YEAR)
-    mMonth = mCalendar.get(Calendar.MONTH)
-    mDay = mCalendar.get(Calendar.DAY_OF_MONTH)
-
-    mCalendar.time = Date()
-
-    // Declaring a string value to
-    // store date in string format
-    val mDate = remember { mutableStateOf("") }
-
-    // Declaring DatePickerDialog and setting
-    // initial values as current values (present year, month and day)
-    val mDatePickerDialog = DatePickerDialog(
-        mContext,
-        { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
-            mDate.value = "$mDayOfMonth/${mMonth + 1}/$mYear"
-        }, mYear, mMonth, mDay
-    )
+    var birthday : Timestamp? by remember { mutableStateOf(null) }
     var genderIsMan by remember { mutableStateOf(true) }
     var isAgree by remember { mutableStateOf(false) }
 
@@ -206,18 +180,54 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                     Spacer(modifier = Modifier.height(20.dp))
                 }
                 item {
+                    var showDataPicker by remember { mutableStateOf(false) }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("День рождения: ${if (mDate.value == "") "Не выбрано" else mDate.value}")
+                        Text("День рождения: ${birthday?.toDate().run {"Не выбрано"} }")
                         // Creating a button that on
                         // click displays/shows the DatePickerDialog
                         Button(
                             onClick = {
-                                mDatePickerDialog.show()
-                            }, colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0XFF0F9D58)
-                            )
+                                showDataPicker = true
+                            }
                         ) {
                             Text(text = "Выбрать дату", color = Color.White)
+                        }
+
+                        if (showDataPicker) {
+                            val datePickerState = rememberDatePickerState()
+                            val confirmEnabled = remember {
+                                derivedStateOf { datePickerState.selectedDateMillis != null }
+                            }
+                            DatePickerDialog(
+                                onDismissRequest = {
+                                    // Dismiss the dialog when the user clicks outside the dialog or on the back
+                                    // button. If you want to disable that functionality, simply use an empty
+                                    // onDismissRequest.
+                                    showDataPicker = false
+                                },
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = {
+                                            birthday = Timestamp(java.util.Date(datePickerState.selectedDateMillis!!))
+                                        },
+                                        enabled = confirmEnabled.value
+                                    ) {
+                                        Text("OK")
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showDataPicker = false }) { Text("Cancel") }
+                                }
+                            ) {
+                                // The verticalScroll will allow scrolling to show the entire month in case there is not
+                                // enough horizontal space (for example, when in landscape mode).
+                                // Note that it's still currently recommended to use a DisplayMode.Input at the state in
+                                // those cases.
+                                DatePicker(
+                                    state = datePickerState,
+                                    modifier = Modifier.verticalScroll(rememberScrollState())
+                                )
+                            }
                         }
                     }
                 }
@@ -308,13 +318,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                         name = name,
                                         patronymiс = patronymiс,
                                         telephoneNumber = telephone,
-                                        birthday = Timestamp(
-                                            date = Calendar.getInstance()
-                                                .apply {
-                                                     set(mYear, mMonth, mDay)
-                                                }
-                                                .time
-                                        )
+                                        birthday = birthday
                                     )
                                 )
                             }
@@ -386,7 +390,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                     .clip(CircleShape)
                                     .border(
                                         5.dp,
-                                        if (el == loggedInAccounts[currentPerson!!].image) {
+                                        if (el == currentPerson!!.image) {
                                             MaterialTheme.colorScheme.outline
                                         } else {
                                             Color.Transparent
@@ -394,7 +398,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                         CircleShape
                                     )
                                     .clickable {
-                                        loggedInAccounts[currentPerson!!].image = el
+                                        currentPerson!!.image = el
                                         changeAvatar = false
                                     }
                             )
