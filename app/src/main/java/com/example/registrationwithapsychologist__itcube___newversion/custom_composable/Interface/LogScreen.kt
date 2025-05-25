@@ -64,8 +64,7 @@ fun LogScreen(navController : NavHostController, auth: FirebaseAuth, db : Fireba
             Spacer(modifier = Modifier.height(20.dp))
         }
         item {
-            Column(Modifier.selectableGroup())
-            {
+            Column(Modifier.selectableGroup()) {
                 Row(
                     modifier = Modifier.clickable{ itMailOrTelephone = "mail" }
                 ) {
@@ -76,12 +75,12 @@ fun LogScreen(navController : NavHostController, auth: FirebaseAuth, db : Fireba
                     )
                 }
                 Row(
-                    modifier = Modifier.clickable{ itMailOrTelephone = "telephone" }
+                    modifier = Modifier.clickable{ /* itMailOrTelephone = "telephone" */ }
                 ) {
-                    Text("Вход по номеру телефона", modifier = Modifier.padding(vertical = 12.dp))
+                    Text("Вход по номеру телефона \n(В разработке)", modifier = Modifier.padding(vertical = 12.dp), color = Color.Gray)
                     RadioButton(
                         selected = itMailOrTelephone == "telephone",
-                        onClick = { itMailOrTelephone = "telephone" }
+                        onClick = { /* itMailOrTelephone = "telephone" */ }
                     )
                 }
             }
@@ -98,16 +97,16 @@ fun LogScreen(navController : NavHostController, auth: FirebaseAuth, db : Fireba
                         isError = success == false
                     )
                 }
-                "telephone" -> {
-                    TextField(
-                        label = { Text("Номер телефона") },
-                        value = telephone,
-                        onValueChange = { telephone = it },
-                        placeholder = { Text("Введите ваш номер телефона") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                        isError = success == false
-                    )
-                }
+//                "telephone" -> {
+//                    TextField(
+//                        label = { Text("Номер телефона") },
+//                        value = telephone,
+//                        onValueChange = { telephone = it },
+//                        placeholder = { Text("Введите ваш номер телефона") },
+//                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+//                        isError = success == false
+//                    )
+//                }
             }
         }
         item {

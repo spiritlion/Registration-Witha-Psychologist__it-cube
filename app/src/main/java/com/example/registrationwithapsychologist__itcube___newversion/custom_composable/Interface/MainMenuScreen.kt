@@ -27,11 +27,5 @@ fun MainMenuScreen(scope: CoroutineScope, drawerState: DrawerState) {
         Text("Для начала работы смахните вправо")
         Text("или нажмите")
         Icon(Icons.Filled.Menu, "Меню", modifier = Modifier.clickable { scope.launch { drawerState.open() } })
-        for (el in avatars) {
-            Row {
-                Image(painterResource(el), null, modifier = Modifier.size(40.dp))
-                Text(el.toString())
-            }
-        }
     }
 }

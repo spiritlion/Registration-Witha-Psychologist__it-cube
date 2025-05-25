@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.registrationwithapsychologist__itcube.custom_composable.Accounts.PersonData
+import com.example.registrationwithapsychologist__itcube___newversion.NavRoutes
 import com.example.registrationwithapsychologist__itcube___newversion.registrationUserWithEmail
 import com.example.registrationwithapsychologist__itcube___newversion.avatars
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
@@ -182,51 +183,61 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                 item {
                     var showDataPicker by remember { mutableStateOf(false) }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("День рождения: ${birthday?.toDate().run {"Не выбрано"} }")
-                        // Creating a button that on
-                        // click displays/shows the DatePickerDialog
-                        Button(
-                            onClick = {
-                                showDataPicker = true
+                        birthday?.toDate()?.let {
+                            Text("День рождения: ${it.date}.${it.month + 1}.${it.year + 1900}").run {
+                                Text(
+                                    "День рождения: не выбран"
+                                )
                             }
-                        ) {
-                            Text(text = "Выбрать дату", color = Color.White)
-                        }
-
-                        if (showDataPicker) {
-                            val datePickerState = rememberDatePickerState()
-                            val confirmEnabled = remember {
-                                derivedStateOf { datePickerState.selectedDateMillis != null }
-                            }
-                            DatePickerDialog(
-                                onDismissRequest = {
-                                    // Dismiss the dialog when the user clicks outside the dialog or on the back
-                                    // button. If you want to disable that functionality, simply use an empty
-                                    // onDismissRequest.
-                                    showDataPicker = false
-                                },
-                                confirmButton = {
-                                    TextButton(
-                                        onClick = {
-                                            birthday = Timestamp(java.util.Date(datePickerState.selectedDateMillis!!))
-                                        },
-                                        enabled = confirmEnabled.value
-                                    ) {
-                                        Text("OK")
-                                    }
-                                },
-                                dismissButton = {
-                                    TextButton(onClick = { showDataPicker = false }) { Text("Cancel") }
+                            // Creating a button that on
+                            // click displays/shows the DatePickerDialog
+                            Button(
+                                onClick = {
+                                    showDataPicker = true
                                 }
                             ) {
-                                // The verticalScroll will allow scrolling to show the entire month in case there is not
-                                // enough horizontal space (for example, when in landscape mode).
-                                // Note that it's still currently recommended to use a DisplayMode.Input at the state in
-                                // those cases.
-                                DatePicker(
-                                    state = datePickerState,
-                                    modifier = Modifier.verticalScroll(rememberScrollState())
-                                )
+                                Text(text = "Выбрать дату", color = Color.White)
+                            }
+
+                            if (showDataPicker) {
+                                val datePickerState = rememberDatePickerState()
+                                val confirmEnabled = remember {
+                                    derivedStateOf { datePickerState.selectedDateMillis != null }
+                                }
+                                DatePickerDialog(
+                                    onDismissRequest = {
+                                        // Dismiss the dialog when the user clicks outside the dialog or on the back
+                                        // button. If you want to disable that functionality, simply use an empty
+                                        // onDismissRequest.
+                                        showDataPicker = false
+                                    },
+                                    confirmButton = {
+                                        TextButton(
+                                            onClick = {
+                                                birthday =
+                                                    Timestamp(java.util.Date(datePickerState.selectedDateMillis!!))
+                                                showDataPicker = false
+                                            },
+                                            enabled = confirmEnabled.value
+                                        ) {
+                                            Text("OK")
+                                        }
+                                    },
+                                    dismissButton = {
+                                        TextButton(onClick = {
+                                            showDataPicker = false
+                                        }) { Text("Cancel") }
+                                    }
+                                ) {
+                                    // The verticalScroll will allow scrolling to show the entire month in case there is not
+                                    // enough horizontal space (for example, when in landscape mode).
+                                    // Note that it's still currently recommended to use a DisplayMode.Input at the state in
+                                    // those cases.
+                                    DatePicker(
+                                        state = datePickerState,
+                                        modifier = Modifier.verticalScroll(rememberScrollState())
+                                    )
+                                }
                             }
                         }
                     }
@@ -364,8 +375,14 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                         },
                         placeholder = { Text("Что вы можете рассказать о себе") },
                         label = { Text(text = "О себе") },
-
                         )
+                }
+                item {
+                    Button(
+                        onClick = { navController.navigate(NavRoutes.Account.route) }
+                    ) {
+                        Text("Продолжить")
+                    }
                 }
             }
         }

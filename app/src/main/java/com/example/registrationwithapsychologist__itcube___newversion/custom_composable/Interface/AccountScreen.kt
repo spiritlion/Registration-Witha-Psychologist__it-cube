@@ -74,7 +74,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
@@ -85,14 +84,14 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
         currentPerson?.let { person ->
             val snackbarHostState = remember { SnackbarHostState() }
 
-            var itIsPsycholog = false
+            var itIsPsychologist = false
             listPsychologs.forEach {
                 if (auth.uid == it.id) {
-                    itIsPsycholog = true
+                    itIsPsychologist = true
                 }
             }
             if (!isEditingMode) {
-                if (!itIsPsycholog) {
+                if (!itIsPsychologist) {
                     // region аккаунт пользователя
                     var isAddingBaby by remember { mutableStateOf(false) }
                     var isShowBaby by remember { mutableStateOf(false) }
@@ -140,7 +139,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             }
                         }
                         item {
-                            Text("Дата рождения: ${person.birthday!!.toDate()}")
+                            person.birthday!!.toDate().let { Text("Дата рождения: ${it.date}.${it.month + 1}.${it.year + 1900}")}
                         }
                         item {
                             Text("Email: ${auth.currentUser?.email}")
@@ -713,20 +712,16 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                         AlertDialog(
                             title = { Text("Смена аккаунта") },
                             text = {
-                                LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    item {
-                                        Row(horizontalArrangement = Arrangement.SpaceEvenly) {
-                                            Button(
-                                                onClick = { navController.navigate(NavRoutes.Log.route) }
-                                            ) {
-                                                Text("Войти в аккаунт")
-                                            }
-                                            Button(
-                                                onClick = { navController.navigate(NavRoutes.Registration.route) }
-                                            ) {
-                                                Text("Создать новый аккаунт")
-                                            }
-                                        }
+                                Column {
+                                    Button(
+                                        onClick = { navController.navigate(NavRoutes.Log.route) }
+                                    ) {
+                                        Text("Войти в аккаунт")
+                                    }
+                                    Button(
+                                        onClick = { navController.navigate(NavRoutes.Registration.route) }
+                                    ) {
+                                        Text("Создать новый аккаунт")
                                     }
                                 }
                             },
@@ -854,7 +849,6 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                     }
                                 }
                             }
-
                             2 -> {
                                 var search by remember { mutableStateOf("") }
                                 Row(
@@ -1418,6 +1412,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                     TextButton(
                                         onClick = {
                                             intermediateBirthday = Timestamp(Date(datePickerState.selectedDateMillis!!))
+                                            showDatePicker = false
                                         },
                                         enabled = confirmEnabled.value
                                     ) {
@@ -1439,9 +1434,11 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             }
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                "Дата рождения: ${person.birthday}"
-                            )
+                            intermediateBirthday?.toDate()?.let {
+                                Text(
+                                    "Дата рождения: ${it.date}.${it.month.plus(1)}.${it.year.plus(1900)}"
+                                )
+                            }
                             Button(onClick = { showDatePicker = true }) {
                                 Text("Изменить")
                             }

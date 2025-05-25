@@ -220,7 +220,7 @@ fun NavBar(
     repository: DataStoreRepository,
     records: CollectionReference
 ){
-    val items = listOf("Информация о психологе", "Запись", "Аккаунт", "Настройки", "TEST_SCREEN")
+    val items = listOf("Информация о психологе", "Запись", "Аккаунт", "Настройки")
     val selectedItem = remember { mutableStateOf("Запись к психологу. IT-куб") }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()

@@ -265,9 +265,9 @@ fun MenuScreen(
                             Column {
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                                     for (day in 1 .. 7) {
-                                        val dayIndex = page * 7 + day - firstDayOfWeek
+                                        val dayIndex = page * 7 + day - firstDayOfWeek + 1
                                         val isToday = dayIndex == LocalDate.now().dayOfMonth && currentMonth.value == LocalDate.now().monthValue && currentYear == LocalDate.now().year
-                                        if (day !in 1..5) {
+                                        if (day in 1..5) {
                                             Column(
                                                 modifier = Modifier
                                                     .border(
@@ -473,3 +473,4 @@ fun MenuScreen(
         }
     }
 }
+
