@@ -45,7 +45,7 @@ data class PersonData(
     /**
      * поле "О себе" пользователя
      */
-    var description: String? = null
+    var description: String? = "null"
 ) {
     /**
      * Data класс ребёнка

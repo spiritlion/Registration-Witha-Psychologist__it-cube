@@ -19,8 +19,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -60,8 +60,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.sql.Date
-import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
@@ -79,9 +77,9 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
     var genderIsMan by remember { mutableStateOf(true) }
     var isAgree by remember { mutableStateOf(false) }
 
-    val avatar by remember { mutableIntStateOf(avatars[0]) }
+    var avatar by remember { mutableIntStateOf(avatars[0]) }
     var changeAvatar by remember { mutableStateOf(false) }
-    var description by remember { mutableStateOf("") }
+    var isSuccessful by remember { mutableStateOf(false) }
     LazyColumn(
         modifier = modifier
             .fillMaxSize(),
@@ -183,61 +181,61 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                 item {
                     var showDataPicker by remember { mutableStateOf(false) }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        birthday?.toDate()?.let {
-                            Text("День рождения: ${it.date}.${it.month + 1}.${it.year + 1900}").run {
-                                Text(
-                                    "День рождения: не выбран"
-                                )
+                        birthday?.toDate().let {
+                            if (it != null) {
+                                Text("День рождения: ${it.date}.${it.month + 1}.${it.year + 1900}")
+                            } else {
+                                Text("День рождения: не выбран")
                             }
-                            // Creating a button that on
-                            // click displays/shows the DatePickerDialog
-                            Button(
-                                onClick = {
-                                    showDataPicker = true
+                        }
+                        // Creating a button that on
+                        // click displays/shows the DatePickerDialog
+                        Button(
+                            onClick = {
+                                showDataPicker = true
+                            }
+                        ) {
+                            Text(text = "Выбрать дату", color = Color.White)
+                        }
+
+                        if (showDataPicker) {
+                            val datePickerState = rememberDatePickerState()
+                            val confirmEnabled = remember {
+                                derivedStateOf { datePickerState.selectedDateMillis != null }
+                            }
+                            DatePickerDialog(
+                                onDismissRequest = {
+                                    // Dismiss the dialog when the user clicks outside the dialog or on the back
+                                    // button. If you want to disable that functionality, simply use an empty
+                                    // onDismissRequest.
+                                    showDataPicker = false
+                                },
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = {
+                                            birthday =
+                                                Timestamp(java.util.Date(datePickerState.selectedDateMillis!!))
+                                            showDataPicker = false
+                                        },
+                                        enabled = confirmEnabled.value
+                                    ) {
+                                        Text("OK")
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = {
+                                        showDataPicker = false
+                                    }) { Text("Cancel") }
                                 }
                             ) {
-                                Text(text = "Выбрать дату", color = Color.White)
-                            }
-
-                            if (showDataPicker) {
-                                val datePickerState = rememberDatePickerState()
-                                val confirmEnabled = remember {
-                                    derivedStateOf { datePickerState.selectedDateMillis != null }
-                                }
-                                DatePickerDialog(
-                                    onDismissRequest = {
-                                        // Dismiss the dialog when the user clicks outside the dialog or on the back
-                                        // button. If you want to disable that functionality, simply use an empty
-                                        // onDismissRequest.
-                                        showDataPicker = false
-                                    },
-                                    confirmButton = {
-                                        TextButton(
-                                            onClick = {
-                                                birthday =
-                                                    Timestamp(java.util.Date(datePickerState.selectedDateMillis!!))
-                                                showDataPicker = false
-                                            },
-                                            enabled = confirmEnabled.value
-                                        ) {
-                                            Text("OK")
-                                        }
-                                    },
-                                    dismissButton = {
-                                        TextButton(onClick = {
-                                            showDataPicker = false
-                                        }) { Text("Cancel") }
-                                    }
-                                ) {
-                                    // The verticalScroll will allow scrolling to show the entire month in case there is not
-                                    // enough horizontal space (for example, when in landscape mode).
-                                    // Note that it's still currently recommended to use a DisplayMode.Input at the state in
-                                    // those cases.
-                                    DatePicker(
-                                        state = datePickerState,
-                                        modifier = Modifier.verticalScroll(rememberScrollState())
-                                    )
-                                }
+                                // The verticalScroll will allow scrolling to show the entire month in case there is not
+                                // enough horizontal space (for example, when in landscape mode).
+                                // Note that it's still currently recommended to use a DisplayMode.Input at the state in
+                                // those cases.
+                                DatePicker(
+                                    state = datePickerState,
+                                    modifier = Modifier.verticalScroll(rememberScrollState())
+                                )
                             }
                         }
                     }
@@ -262,7 +260,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                     true -> "Мужской"
                                     false -> "Женский"
                                 },
-                                onValueChange = {},
+                                onValueChange = {  },
                                 label = { Text("Пол") },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                                 colors = ExposedDropdownMenuDefaults.textFieldColors(),
@@ -311,14 +309,13 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                             telephone != "" &&
                             password != "" &&
                             currentPassword == password &&
-
                             surname != "" &&
                             name != "" &&
                             patronymiс != "" &&
                             isAgree
                         ) {
                             GlobalScope.launch {
-                                registrationUserWithEmail(
+                                isSuccessful = registrationUserWithEmail(
                                     email = mail,
                                     password = password,
                                     auth = auth,
@@ -329,11 +326,12 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                         name = name,
                                         patronymiс = patronymiс,
                                         telephoneNumber = telephone,
-                                        birthday = birthday
+                                        birthday = birthday,
+                                        genderIsMan = genderIsMan
                                     )
                                 )
+                                state ++
                             }
-                            state ++
 
                         }
                     }) {
@@ -342,47 +340,56 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                 }
             }
             2 -> {
-                item {
-                    Text("Кастомизация", fontSize = 20.sp)
-                }
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceAround
-                    ) {
-                        Image(
-                            painter = painterResource(avatar),
-                            contentDescription = "avatar",
+                var description = mutableStateOf(currentPerson!!.description)
+                if (isSuccessful) {
+                    item {
+                        Text("Кастомизация", fontSize = 20.sp)
+                    }
+                    item {
+                        Row(
                             modifier = Modifier
-                                .clip(CircleShape)
-                                .size(64.dp)
-                        )
-                        Button(
-                            { changeAvatar = true }
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceAround
                         ) {
-                            Text("Изменить аватар")
+                            Image(
+                                painter = painterResource(avatar),
+                                contentDescription = "avatar",
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .size(64.dp)
+                            )
+                            Button(
+                                { changeAvatar = true }
+                            ) {
+                                Text("Изменить аватар")
+                            }
+                        }
+                    }
+                    item {
+                        TextField(
+                            value = description.value.toString(),
+                            onValueChange = {
+                                description.value = it
+                            },
+                            placeholder = { Text("Что вы можете рассказать о себе") },
+                            label = { Text(text = "О себе") },
+                        )
+                    }
+                    item {
+                        Button(
+                            onClick = {
+                                currentPerson!!.description = description.value
+                                navController.navigate(NavRoutes.Account.route)
+                            }
+                        ) {
+                            Text("Продолжить")
                         }
                     }
                 }
+            } else -> {
                 item {
-                    TextField (
-                        value = description.toString(),
-                        onValueChange = {
-                                stringParameter ->
-                            description = stringParameter
-                        },
-                        placeholder = { Text("Что вы можете рассказать о себе") },
-                        label = { Text(text = "О себе") },
-                        )
-                }
-                item {
-                    Button(
-                        onClick = { navController.navigate(NavRoutes.Account.route) }
-                    ) {
-                        Text("Продолжить")
-                    }
+                    CircularProgressIndicator()
                 }
             }
         }
@@ -417,6 +424,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                     .clickable {
                                         currentPerson!!.image = el
                                         changeAvatar = false
+                                        avatar = currentPerson!!.image
                                     }
                             )
                         }

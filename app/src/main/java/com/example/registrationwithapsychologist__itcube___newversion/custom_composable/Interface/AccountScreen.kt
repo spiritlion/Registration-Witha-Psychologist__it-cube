@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -64,6 +65,7 @@ import com.example.registrationwithapsychologist__itcube___newversion.R
 import com.example.registrationwithapsychologist__itcube___newversion.avatars
 import com.example.registrationwithapsychologist__itcube___newversion.currentPerson
 import com.example.registrationwithapsychologist__itcube___newversion.custom_composable.Accounts.Record
+import com.example.registrationwithapsychologist__itcube___newversion.deleteCurrentAccount
 import com.example.registrationwithapsychologist__itcube___newversion.listPsychologs
 import com.example.registrationwithapsychologist__itcube___newversion.listRecordsWithId
 import com.example.registrationwithapsychologist__itcube___newversion.listUsersWithId
@@ -1262,15 +1264,17 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
             } else {
                 // region Editing Mode
                 var isSave by remember { mutableStateOf(false) }
-                var intermediateImage by remember { mutableIntStateOf(person!!.image) }
-                var intermediateSurname by remember { mutableStateOf(person!!.surname) }
-                var intermediateName by remember { mutableStateOf(person!!.name) }
-                var intermediatePatronymiс by remember { mutableStateOf(person!!.patronymiс) }
-                var intermediateBirthday by remember { mutableStateOf(person!!.birthday) }
+                var intermediateImage by remember { mutableIntStateOf(person.image) }
+                var intermediateSurname by remember { mutableStateOf(person.surname) }
+                var intermediateName by remember { mutableStateOf(person.name) }
+                var intermediatePatronymiс by remember { mutableStateOf(person.patronymiс) }
+                var intermediateBirthday by remember { mutableStateOf(person.birthday) }
                 var intermediateMail by remember { mutableStateOf(auth.currentUser!!.email) }
-                var intermediateTelephone by remember { mutableStateOf(person!!.telephoneNumber) }
-                var intermediateGender by remember { mutableStateOf(person!!.genderIsMan) }
-                var intermediateDescription by remember { mutableStateOf(person!!.description) }
+                var intermediateTelephone by remember { mutableStateOf(person.telephoneNumber) }
+                var intermediateGender by remember { mutableStateOf(person.genderIsMan) }
+                var intermediateDescription by remember { mutableStateOf(person.description) }
+                var isLogOut by remember { mutableStateOf(false) }
+                var isDeleteAccount by remember { mutableStateOf(false) }
                 Box(modifier = Modifier.fillMaxWidth()) {
                     Button(
                         onClick = {
@@ -1532,12 +1536,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             Spacer(modifier = Modifier.padding(20.dp))
                             Button(
                                 onClick = {
-                                    currentPerson = null
-                                    auth.signOut()
-                                    GlobalScope.launch {
-                                        snackbarHostState.showSnackbar("Вы успешно вышли из аккаунта")
-                                    }
-                                    navController.navigate(NavRoutes.Account.route)
+                                    isLogOut = true
                                 },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFFFF9800)
@@ -1547,10 +1546,7 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             }
                             Button(
                                 onClick = {
-                                    currentPerson = null
-                                    auth.currentUser?.delete()
-                                    GlobalScope.launch { snackbarHostState.showSnackbar("Ваш аккаунт успешно удалён") }
-                                    navController.navigate(NavRoutes.Account.route)
+                                    isDeleteAccount = true
                                           },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color.Red
@@ -1575,27 +1571,18 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                             Row {
                                 Button(
                                     {
-                                        person!!.image = intermediateImage
-                                        person!!.surname =
-                                            intermediateSurname
-                                        person!!.name = intermediateName
-                                        person!!.patronymiс =
-                                            intermediatePatronymiс
-
-                                        if (intermediateTelephone!![0] == '+') person!!.telephoneNumber =
-                                            intermediateTelephone
-                                        else person!!.telephoneNumber =
-                                            "+$intermediateTelephone"
-                                        person!!.birthday =
-                                            intermediateBirthday
-                                        person!!.description =
-                                            intermediateDescription
-                                        person!!.genderIsMan =
-                                            intermediateGender
+                                        person.image = intermediateImage
+                                        person.surname = intermediateSurname
+                                        person.name = intermediateName
+                                        person.patronymiс = intermediatePatronymiс
+                                        person.telephoneNumber = intermediateTelephone
+                                        person.birthday = intermediateBirthday
+                                        person.description = intermediateDescription
+                                        person.genderIsMan = intermediateGender
 
                                         auth.currentUser!!.updateEmail(intermediateMail!!)
                                         users.document(auth.uid!!)
-                                            .set(person!!)
+                                            .set(person)
                                         isSave = false
                                         isEditingMode = false
                                     }
@@ -1610,6 +1597,69 @@ fun AccountScreen(modifier: Modifier = Modifier, navController : NavHostControll
                                 ) {
                                     Text("Не сохранять")
                                 }
+                            }
+                        }
+                    )
+                }
+                if (isLogOut) {
+                    AlertDialog(
+                        title = { Text("Вы уверены, что хотите выйти из аккаунта?") },
+                        text = {},
+                        onDismissRequest = { isLogOut = false },
+                        dismissButton = {
+                            Button(
+                                onClick = { isLogOut = false }
+                            ) {
+                                Text("Нет")
+                            }
+                                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    currentPerson = null
+                                    auth.signOut()
+                                    GlobalScope.launch {
+                                        snackbarHostState.showSnackbar("Вы успешно вышли из аккаунта")
+                                    }
+                                    navController.navigate(NavRoutes.Account.route)
+                                }
+                            ) {
+                                Text("Да")
+                            }
+                        }
+                    )
+                }
+                if (isDeleteAccount) {
+                    var isSuccessful : Boolean? by remember { mutableStateOf(null) }
+                    AlertDialog(
+                        title = { Text("Вы уверены, что хотите удалить аккаунт?") },
+                        text = {
+                            isSuccessful?.let {
+                                if (it) {
+                                    CircularProgressIndicator()
+                                    navController.navigate(NavRoutes.Account.route)
+                                } else {
+                                    Text("При удалении аккаунта произошля какая-то ошибка, попробуте ещё раз")
+                                }
+                            }
+                        },
+                        onDismissRequest = { isDeleteAccount = false },
+                        dismissButton = {
+                            Button(
+                                onClick = { isDeleteAccount = false }
+                            ) {
+                                Text("Нет")
+                            }
+                                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    GlobalScope.launch {
+                                        isSuccessful = deleteCurrentAccount(auth, users)
+                                    }
+                                }
+                            ) {
+                                Text("Да")
                             }
                         }
                     )

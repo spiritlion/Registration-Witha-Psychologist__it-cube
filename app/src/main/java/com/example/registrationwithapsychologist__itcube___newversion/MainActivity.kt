@@ -67,7 +67,6 @@ import com.example.registrationwithapsychologist__itcube___newversion.custom_com
 import com.example.registrationwithapsychologist__itcube___newversion.ui.theme.RegistrationWithAPsychologistITCubeNewVersionTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -99,7 +98,6 @@ class MainActivity : ComponentActivity() {
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         enableEdgeToEdge()
         setContent {
             val context = this
@@ -307,20 +305,24 @@ sealed class NavRoutes(val route: String) {
     data object Test : NavRoutes("test")
 }
 
-suspend fun registrationUserWithEmail(email: String, password: String, auth : FirebaseAuth, db: FirebaseFirestore, users: CollectionReference, newPerson: PersonData) {
+suspend fun registrationUserWithEmail(email: String, password: String, auth : FirebaseAuth, db: FirebaseFirestore, users: CollectionReference, newPerson: PersonData) : Boolean {
     auth.createUserWithEmailAndPassword(email, password)
         .await()
         .let { result ->
             if (result.user != null) {
                 Log.d(TAG, "It`s ok")
-            } else Log.w(TAG, "It`s non ok")
+                users.document(auth.uid!!).set(newPerson)
+                users.document(auth.uid!!)
+                    .get()
+                    .await()
+                    .toObject(PersonData::class.java)
+                    ?.let { currentPerson = it }
+                return true
+            } else {
+                Log.w(TAG, "It`s non ok")
+                return false
+            }
         }
-    users.document(auth.uid!!).set(newPerson)
-    users.document(auth.uid!!)
-        .get()
-        .await()
-        .toObject(PersonData::class.java)
-        ?.let { currentPerson = it }
 }
 
 suspend fun logUserWithEmail(email: String, password: String, auth : FirebaseAuth, users: CollectionReference) : Boolean {
@@ -346,6 +348,17 @@ suspend fun logUserWithEmail(email: String, password: String, auth : FirebaseAut
         } ?: false
     }
     catch(e:Throwable) {
+        return false
+    }
+}
+
+suspend fun deleteCurrentAccount(auth: FirebaseAuth, users: CollectionReference) : Boolean {
+    try {
+        currentPerson = null
+        auth.currentUser?.let { users.document(it.uid).delete() }
+        auth.currentUser!!.delete().await()
+        return true
+    } catch (e: Throwable) {
         return false
     }
 }
